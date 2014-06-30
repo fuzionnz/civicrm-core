@@ -119,7 +119,7 @@ class CRM_Core_Payment_AuthorizeNetIPN2 extends CRM_Core_Payment_BaseIPN {
       $contribution->financial_type_id  = $objects['contributionType']->id;
       $contribution->contribution_page_id = $ids['contributionPage'];
       $contribution->contribution_recur_id = $ids['contributionRecur'];
-      $contribution->receive_date = $now;
+      $contribution->receive_date = self::retrieve('receive_date', 'String', FALSE, $now);
       $contribution->currency = $objects['contribution']->currency;
       $contribution->payment_instrument_id = $objects['contribution']->payment_instrument_id;
       $contribution->amount_level = $objects['contribution']->amount_level;
@@ -211,7 +211,6 @@ class CRM_Core_Payment_AuthorizeNetIPN2 extends CRM_Core_Payment_BaseIPN {
     $input['response_code'] = self::retrieve('x_response_code', 'Integer');
     $input['MD5_Hash'] = self::retrieve('x_MD5_Hash', 'String', FALSE, '');
     $input['fee_amount'] = self::retrieve('x_fee_amount', 'Money', FALSE, '0.00');
-    $input['net_amount'] = self::retrieve('x_net_amount', 'Money', FALSE, '0.00');
     $input['response_reason_code'] = self::retrieve('x_response_reason_code', 'String', FALSE);
     $input['response_reason_text'] = self::retrieve('x_response_reason_text', 'String', FALSE);
     $input['subscription_paynum'] = self::retrieve('x_subscription_paynum', 'Integer', FALSE, 0);
