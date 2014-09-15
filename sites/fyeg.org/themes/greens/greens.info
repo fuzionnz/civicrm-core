@@ -1,0 +1,22 @@
+name = Greens
+description = Greens
+package = Core
+version = VERSION
+core = 7.x
+
+stylesheets[all][] = bootstrap/css/bootstrap.css
+stylesheets[all][] = bootstrap/css/bootstrap-responsive.css
+scripts[] = bootstrap/js/bootstrap.min.js
+
+stylesheets[all][] = css/swiper.css
+stylesheets[all][] = css/style.css
+
+scripts[] = js/swiper.js
+scripts[] = js/script.js
+
+regions[header] = Header
+regions[content] = Content
+regions[footer] = Footer
+
+features[] = main_menu
+features[] = menu-sidebar

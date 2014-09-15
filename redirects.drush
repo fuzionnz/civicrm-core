@@ -1,0 +1,22 @@
+<?php
+
+$rows = db_query("
+SELECT j.nid as nid, CONCAT('main/index.php/', if(js.id = 4, 'get-involved/', ''), if(jc.catid = 20, 'about-fyeg', js.alias), '/', jcc.alias, '/', jc.id, '-', jc.alias) as source
+FROM joomla_content j
+INNER JOIN `fyeg-joomla_v15`.jos_content jc ON j.`jcontentid` = jc.id
+INNER JOIN `fyeg-joomla_v15`.jos_categories jcc ON jc.catid = jcc.id
+INNER JOIN `fyeg-joomla_v15`.jos_sections js ON jc.sectionid = js.id")->fetchAll();
+
+foreach ($rows as $row) {
+  $redirect = new Stdclass();
+  $redirect->type = 'redirect';
+  $redirect->uid = 0;
+  $redirect->source = $row->source;
+  $redirect->source_options = array();
+  $redirect->redirect = "node/{$row->nid}";
+  $redirect->redirect_options = array();
+  $redirect->language = LANGUAGE_NONE;
+  $redirect->status_code = 301;
+  redirect_hash($redirect);
+  drupal_write_record('redirect', $redirect);
+}

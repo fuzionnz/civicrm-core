@@ -1,0 +1,13 @@
+core = "7.x"
+dependencies[] = "environment"
+description = "Provides a Read Only environment state"
+name = "Read Only Environment"
+recommends[] = "context"
+stylesheets[all][] = "environment_readonly.css"
+
+; Information added by Drupal.org packaging script on 2014-07-26
+version = "7.x-1.x-dev"
+core = "7.x"
+project = "environment"
+datestamp = "1406396928"
+

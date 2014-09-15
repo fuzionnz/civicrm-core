@@ -1,0 +1,11 @@
+name = Environment
+description = Sets the environment variable for a site instance
+core = 7.x
+configure = admin/config/environment
+
+; Information added by Drupal.org packaging script on 2014-07-26
+version = "7.x-1.x-dev"
+core = "7.x"
+project = "environment"
+datestamp = "1406396928"
+

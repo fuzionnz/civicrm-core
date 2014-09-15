@@ -1,0 +1,13 @@
+name = "Environment Context"
+description = "Use environment setting within context"
+core = "7.x"
+dependencies[] = "environment"
+dependencies[] = "context"
+
+
+; Information added by Drupal.org packaging script on 2014-07-26
+version = "7.x-1.x-dev"
+core = "7.x"
+project = "environment"
+datestamp = "1406396928"
+

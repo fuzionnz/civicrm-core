@@ -1,0 +1,11 @@
+name = "Environment Force"
+description = "Resets the environment to that specified in settings.php on every page load."
+core = "7.x"
+dependencies[] = "environment"
+
+; Information added by Drupal.org packaging script on 2014-07-26
+version = "7.x-1.x-dev"
+core = "7.x"
+project = "environment"
+datestamp = "1406396928"
+
