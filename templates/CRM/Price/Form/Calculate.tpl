@@ -58,7 +58,7 @@ cj("input,#priceset select,#priceset").each(function () {
     optionPart = option[1].split(optionSep);
     addprice   = parseFloat( optionPart[0] );
 
-    if( cj(this).attr('checked') ) {
+    if( cj(this).prop('checked') ) {
       totalfee   += addprice;
       price[ele] += addprice;
     }
@@ -66,7 +66,7 @@ cj("input,#priceset select,#priceset").each(function () {
     //event driven calculation of element.
     cj(this).click( function(){
 
-      if ( cj(this).attr('checked') )  {
+      if ( cj(this).prop('checked') )  {
   totalfee   += addprice;
   price[ele] += addprice;
       } else {
@@ -89,7 +89,7 @@ cj("input,#priceset select,#priceset").each(function () {
       price[ele] = 0;
     }
 
-    if( cj(this).attr('checked') ) {
+    if( cj(this).prop('checked') ) {
       totalfee   = parseFloat(totalfee) + addprice - parseFloat(price[ele]);
       price[ele] = addprice;
     }
@@ -107,28 +107,14 @@ cj("input,#priceset select,#priceset").each(function () {
   case 'text':
 
     //default calcution of element.
-    var textval = parseFloat( cj(this).val() );
-    if ( textval ) {
-      eval( 'var option = '+ cj(this).attr('price') );
-      ele         = option[0];
-      if ( ! price[ele] ) {
-       price[ele] = 0;
-      }
-      optionPart = option[1].split(optionSep);
-      addprice   = parseFloat( optionPart[0] );
-      var curval  = textval * addprice;
-      if ( textval >= 0 ) {
-    totalfee   = parseFloat(totalfee) + curval - parseFloat(price[ele]);
-    price[ele] = curval;
-      }
-    }
+    calculateText( this );
 
     //event driven calculation of element.
     cj(this).bind( 'keyup', function() { calculateText( this );
     }).bind( 'blur' , function() { calculateText( this );
     });
-    display( totalfee );
-    break;
+
+   break;
 
   case 'select-one':
 
@@ -180,23 +166,25 @@ cj("input,#priceset select,#priceset").each(function () {
 
 //calculation for text box.
 function calculateText( object ) {
-  eval( 'var option = ' + cj(object).attr('price') );
-  ele = option[0];
-  if ( ! price[ele] ) {
-    price[ele] = 0;
-  }
-  var optionPart = option[1].split(optionSep);
-  addprice    = parseFloat( optionPart[0] );
-  var textval = parseFloat( cj(object).attr('value') );
-  var curval  = textval * addprice;
-    if ( textval >= 0 ) {
-  totalfee   = parseFloat(totalfee) + curval - parseFloat(price[ele]);
-  price[ele] = curval;
-    } else {
-  totalfee   = parseFloat(totalfee) - parseFloat(price[ele]);
-  price[ele] = parseFloat('0');
-    }
-  display( totalfee );
+   var textval = parseFloat( cj(object).val() );
+
+   eval( 'var option = '+ cj(object).attr('price') );
+   ele         = option[0];
+   if ( ! price[ele] ) {
+       price[ele] = 0;
+   }
+   optionPart = option[1].split(optionSep);
+   addprice   = parseFloat( optionPart[0] );
+   var curval  = textval * addprice;
+   if ( textval >= 0 ) {
+       totalfee   = parseFloat(totalfee) + curval - parseFloat(price[ele]);
+       price[ele] = curval;
+   }
+   else {
+       totalfee   = parseFloat(totalfee) - parseFloat(price[ele]);
+       price[ele] = parseFloat('0');
+   }
+   display( totalfee );
 }
 
 //display calculated amount
@@ -209,10 +197,38 @@ function display( totalfee ) {
     scriptfee   = totalfee;
     scriptarray = price;
     cj('#total_amount').val( totalfee );
+    cj('#pricevalue').data('raw-total', totalfee).trigger('change');
 
     ( totalfee < 0 ) ? cj('table#pricelabel').addClass('disabled') : cj('table#pricelabel').removeClass('disabled');
-
+    if (typeof skipPaymentMethod == 'function') {
+      skipPaymentMethod();
+    }
 }
+
+cj(function(){
+  // highlight price sets
+  function updatePriceSetHighlight() {
+    cj('#priceset .price-set-row span').removeClass('highlight');
+    cj('#priceset .price-set-row input:checked').parent().addClass('highlight');
+  }
+  cj('#priceset input[type="radio"]').change(updatePriceSetHighlight);
+  updatePriceSetHighlight();
+
+  function toggleBillingBlockIfFree(){
+    var total_amount_tmp =  cj(this).data('raw-total');
+    // Hide billing questions if this is free
+    if (total_amount_tmp == 0){
+      cj("#billing-payment-block").hide();
+      cj(".payment_options-group").hide();
+    }
+    else {
+      cj("#billing-payment-block").show();
+      cj(".payment_options-group").show();
+    }
+  }
+
+  cj('#pricevalue').each(toggleBillingBlockIfFree).on('change', toggleBillingBlockIfFree);
+});
 
 //money formatting/localization
 function formatMoney (amount, c, d, t) {

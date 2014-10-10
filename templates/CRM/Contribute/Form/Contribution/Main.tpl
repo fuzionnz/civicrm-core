@@ -477,16 +477,6 @@
       cj("#crm-submit-buttons").hide();
     }
   }
-
-  cj(function(){
-    // highlight price sets
-    function updatePriceSetHighlight() {
-      cj('#priceset .price-set-row span').removeClass('highlight');
-      cj('#priceset .price-set-row input:checked').parent().addClass('highlight');
-    }
-    cj('#priceset input[type="radio"]').change(updatePriceSetHighlight);
-    updatePriceSetHighlight();
-  });
   {/literal}
 </script>
 {/if}
