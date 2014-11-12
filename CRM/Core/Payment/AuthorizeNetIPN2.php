@@ -119,7 +119,7 @@ class CRM_Core_Payment_AuthorizeNetIPN2 extends CRM_Core_Payment_BaseIPN {
       $contribution->financial_type_id  = $objects['contributionType']->id;
       $contribution->contribution_page_id = $ids['contributionPage'];
       $contribution->contribution_recur_id = $ids['contributionRecur'];
-      $contribution->receive_date = $now;
+      $contribution->receive_date = self::retrieve('receive_date', 'String', FALSE, $now);
       $contribution->currency = $objects['contribution']->currency;
       $contribution->payment_instrument_id = $objects['contribution']->payment_instrument_id;
       $contribution->amount_level = $objects['contribution']->amount_level;
