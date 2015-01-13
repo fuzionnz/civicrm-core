@@ -53,7 +53,7 @@
 						</div>
 					  	<div class="tool-item">
 						  	<div class="green-btn ico"><img src="<?php echo "$base_path$directory/images/"?>icon-contact-mobile-retina.png" width="45" height="35"></div>
-						  	<div class="green-btn">+32 (0) 4 95 12 96 91</div>
+						  	<div class="green-btn">+32 (0) 4 95 12 96 01</div>
 						</div>
 						<div class="tool-item">
 						  	<div class="green-btn ico"><img src="<?php echo "$base_path$directory/images/"?>icon-contact-mail-retina.png" width="45" height="35"></div>

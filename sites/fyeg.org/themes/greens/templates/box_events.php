@@ -5,7 +5,6 @@
 						  ->entityCondition('bundle', $content_type)
 						  ->propertyCondition('status', 1) // Published
 						  ->fieldOrderBy("field_date_range", 'value', 'ASC')
-						  ->pager()
 						  ->execute();
 						
 						$nodes = entity_load('node', array_keys($entities['node']));
