@@ -1,0 +1,7 @@
+name = Fuzion Archimedes
+description = Additional checks for Archimedes.
+core = 7.x
+package = "Archimedes"
+version = "7.x-1.x"
+dependencies[] = archimedes
+
