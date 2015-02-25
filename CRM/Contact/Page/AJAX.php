@@ -99,7 +99,7 @@ class CRM_Contact_Page_AJAX {
     $result = civicrm_api('Contact', 'getquick', $params);
     if (empty($result['is_error']) && !empty($result['values'])) {
       foreach ($result['values'] as $key => $val) {
-        echo htmlspecialchars("{$val['data']}|{$val['id']}\n");
+        echo "{$val['data']}|{$val['id']}\n";
       }
     }
     CRM_Utils_System::civiExit();
@@ -116,7 +116,7 @@ class CRM_Contact_Page_AJAX {
     $fldValues = $cf = array();
     CRM_Core_DAO::commonRetrieve('CRM_Core_DAO_CustomField', $params, $cf, $returnProperties);
     if (!$cf['id'] || !$cf['is_active'] || $cf['data_type'] = !'ContactReference') {
-      echo htmlspecialchars("$name|error\n");
+      echo "$name|error\n";
       CRM_Utils_System::civiExit();
     }
 
@@ -129,7 +129,7 @@ class CRM_Contact_Page_AJAX {
       if (!empty($action) &&
         !in_array($action, array('get', 'lookup'))
       ) {
-        echo htmlspecialchars("$name|error\n");
+        echo "$name|error\n";
         CRM_Utils_System::civiExit();
       }
     }
@@ -183,7 +183,7 @@ class CRM_Contact_Page_AJAX {
     $contact = civicrm_api('Contact', 'Get', $params);
 
     if (CRM_Utils_Array::value('is_error', $contact)) {
-      echo htmlspecialchars("$name|error\n");
+      echo "$name|error\n";
       CRM_Utils_System::civiExit();
     }
 
@@ -195,12 +195,11 @@ class CRM_Contact_Page_AJAX {
           $view[] = $value[$fld];
         }
       }
-      $contactList = implode(' :: ', $view) . "|" . $value['id'] . "\n";
-      echo htmlspecialchars($contactList);
+      echo $contactList = implode(' :: ', $view) . "|" . $value['id'] . "\n";
     }
 
     if (!$contactList) {
-      echo htmlspecialchars("$name|$name\n");
+      echo "$name|$name\n";
     }
 
     CRM_Utils_System::civiExit();
@@ -256,8 +255,7 @@ class CRM_Contact_Page_AJAX {
     $dao = CRM_Core_DAO::executeQuery($query);
 
     while ($dao->fetch()) {
-      $pcpList = "$dao->data|$dao->id\n";
-      echo htmlspecialchars($pcpList);
+      echo $pcpList = "$dao->data|$dao->id\n";
     }
 
     CRM_Utils_System::civiExit();
@@ -285,8 +283,7 @@ class CRM_Contact_Page_AJAX {
     $completeList = NULL;
     foreach ($selectOption as $id => $value) {
       if (strtolower($label) == strtolower(substr($value, 0, strlen($label)))) {
-        $completeList = "$value|$id\n";
-        echo htmlspecialchars($completeList);
+        echo $completeList = "$value|$id\n";
       }
     }
     CRM_Utils_System::civiExit();
@@ -515,7 +512,7 @@ ORDER BY sort_name ";
 
       if ($shared) {
         while ($dao->fetch()) {
-          echo htmlspecialchars($dao->sort_name);
+          echo $dao->sort_name;
           CRM_Utils_System::civiExit();
         }
       }
@@ -527,13 +524,12 @@ ORDER BY sort_name ";
             );
           }
           else {
-            $elements = "$dao->sort_name|$dao->id|$dao->location_type_id|$dao->is_primary|$dao->is_billing\n";
-            echo htmlspecialchars($elements);
+            echo $elements = "$dao->sort_name|$dao->id|$dao->location_type_id|$dao->is_primary|$dao->is_billing\n";
           }
         }
         //for adding new household address / organization
         if (empty($elements) && !$json && ($hh || $organization)) {
-          echo htmlspecialchars(CRM_Utils_Array::value('s', $_GET));
+          echo CRM_Utils_Array::value('s', $_GET);
         }
       }
     }
@@ -697,7 +693,7 @@ WHERE sort_name LIKE '%$name%'";
 
       header('Content-Type: text/plain');
       if ($userEmail) {
-        echo htmlspecialchars($userEmail);
+        echo $userEmail;
       }
     }
     else {
@@ -1059,7 +1055,6 @@ LIMIT {$offset}, {$rowCount}
     $selectorElements = array_merge($selectorElements, array('city', 'state', 'email', 'phone'));
 
     $iFilteredTotal = $iTotal;
-    header('Content-Type: application/json');
     echo CRM_Utils_JSON::encodeDataTableSelector($searchRows, $sEcho, $iTotal, $iFilteredTotal, $selectorElements);
     CRM_Utils_System::civiExit();
   }
