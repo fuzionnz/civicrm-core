@@ -161,6 +161,9 @@
 					$country_name = check_plain($country_node->name);
 					$country_tid = $country_node->tid;
 					
+					$membership_node = taxonomy_term_load($node->field_member_type['und']['0']['tid']);
+					$membership_name = check_plain($membership_node->name);
+					
 					$image_url = check_url($node->field_member_logo['und']['0']['uri']);
 					$image = image_style_url('member_logo', $image_url);
 					$node_num++;
@@ -177,7 +180,7 @@
 										<img src="<?php echo $image?>">
 									</div>
 									<div class="title"><?php echo $node->title;?></div>
-									<p><?php echo $country_name?></strong></p>
+									<p><?php echo $country_name?> - <?php echo $membership_name;?></p>
 									<p><?php echo check_markup($node->body['und']['0']['value'],filtered_html)?></p>
 								</div>
 							</div>
