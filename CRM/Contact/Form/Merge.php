@@ -326,6 +326,27 @@ class CRM_Contact_Form_Merge extends CRM_Core_Form {
     CRM_Dedupe_Merger::moveAllBelongings($this->_cid, $this->_oid, $formValues);
 
     CRM_Core_Session::setStatus(ts('Contact id %1 has been updated and contact id %2 has been deleted.', array(1 => $this->_cid, 2 => $this->_oid)), ts('Contacts Merged'), 'success');
+    $mergeActivityType = CRM_Core_PseudoConstant::getName('CRM_Activity_BAO_Activity', 'activity_type_id', 'Merged records');
+
+    if (!empty($mergeActivityType)) {
+      $name = CRM_Core_DAO::getFieldValue('CRM_Contact_DAO_Contact', $this->_cid, 'display_name');
+      $message = '<ul><li>' . ts('%1 has been updated.', array(1 => $name)) . '</li><li>' . ts('Contact ID %1 has been deleted.', array(1 => $this->_oid)) . '</li></ul>';
+      CRM_Core_Session::setStatus($message, ts('Contacts Merged'), 'success');
+
+      //create activity for merge
+      //To do: this should be refactored into BAO layer at some point.
+      $messageActivity = ts('Contact ID %1 has been merged and deleted.', array(1 => $this->_oid));
+      $activityParams = array(
+        'subject' => $messageActivity,
+        'source_contact_id' => $session->get('userID'),
+        'target_contact_id' => $this->_cid,
+        'activity_type_id' => $mergeActivityType,
+        'status_id' => 'Completed',
+        'priority_id' => 'Normal',
+        'activity_date_time' => date('YmdHis'),
+      );
+      civicrm_api3('activity', 'create', $activityParams);
+    }
     $url = CRM_Utils_System::url('civicrm/contact/view', "reset=1&cid={$this->_cid}");
     if (CRM_Utils_Array::value('_qf_Merge_submit', $formValues)) {
       $listParamsURL = "reset=1&action=update&rgid={$this->_rgid}";
