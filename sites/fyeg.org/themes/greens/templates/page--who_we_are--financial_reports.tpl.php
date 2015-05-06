@@ -72,23 +72,24 @@
 				
 				<?php
 				foreach ($nodes as $node) {
-					$pdf_url = check_url($node->field_pdf['und']['0']['uri']);
+					$pdf_url = $node->field_pdf['und']['0']['uri'];
 					$category_node = taxonomy_term_load($node->field_category['und']['0']['tid']);
 					$category_name = check_plain($category_node->name);
 					$category_tid = $category_node->tid;
 				?>
 
-			<div class="box report">
-				<div class="content">
-					<div class="row-fluid article">
-						<div class="span12">
-							<a href="<?php echo $base_path.drupal_lookup_path('alias',"node/".$node->nid)?>"><h1 class="article-title"><?php echo check_plain($node->title);?></h1></a>
-							<p><?php echo check_plain($node->field_short_description['und']['0']['value'])?></p>
-							<p><a href="?category=<?php echo check_plain($category_tid)?>"><strong><?php echo $category_name?></strong></a><br><strong><?php echo  check_plain(date('M j, Y', $node->created)); ?></strong></p>
+				<div class="box structures">
+					<div class="content">
+						<div class="row-fluid article">
+							<div class="span12">
+								<h1 class="article-title"><?php echo $node->title;?></h1>
+								<p><?php echo check_markup($node->body['und']['0']['value'],filtered_html)?></p>
+								<a href="<?php echo file_create_url($pdf_url);?>" class="download-pdf">PDF</a>
+							</div>
 						</div>
 					</div>
 				</div>
-			</div>
+        
 			<?php } ?>
 		</div>
 

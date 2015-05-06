@@ -129,6 +129,44 @@
 					</div>
 				</div>
 			</div>
+			
+			
+			<div class="row-fluid">
+				<div class="span6">
+					<div class="box launch-box">
+						<a href="/who-we-are/executive-committee/ec-reports">
+							<div class="content">
+								<div class="header row-fluid">
+									<div class="span12">
+									<?php $block_id=15;$block = _block_render_blocks(array(block_load("block", $block_id)));?>
+										<div class="title"><?php echo check_plain($block['block_'.$block_id]->title); ?></div>
+										<p><?php echo check_markup($block['block_'.$block_id]->content['#markup'],filtered_html);?></p>
+										
+									</div>
+									<?php require DRUPAL_ROOT.base_path().path_to_theme().'/templates/tool_edit_box.php';?>
+								</div>
+							</div>
+						</a>
+					</div>
+				</div>
+				<div class="span6">
+					<div class="box launch-box">
+						<a href="/who-we-are/financial-reports">
+							<div class="content">
+								<div class="header row-fluid">
+									<div class="span12">
+									<?php $block_id=16;$block = _block_render_blocks(array(block_load("block", $block_id)));?>
+										<div class="title"><?php echo check_plain($block['block_'.$block_id]->title); ?></div>
+										<p><?php echo check_markup($block['block_'.$block_id]->content['#markup'],filtered_html);?></p>
+										
+									</div>
+									<?php require DRUPAL_ROOT.base_path().path_to_theme().'/templates/tool_edit_box.php';?>
+								</div>
+							</div>
+						</a>
+					</div>
+				</div>
+			</div>
 
 
 
