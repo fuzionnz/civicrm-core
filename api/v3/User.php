@@ -47,6 +47,7 @@ function civicrm_api3_user_get($params) {
     ));
   }
   $result = CRM_Core_Config::singleton()->userSystem->getUser($params['contact_id']);
+  $result['contact_id'] = $params['contact_id'];
   return civicrm_api3_create_success(
     array($result['id'] => $result),
     $params,
