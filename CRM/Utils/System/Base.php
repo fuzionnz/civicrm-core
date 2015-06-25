@@ -592,6 +592,27 @@ abstract class CRM_Utils_System_Base {
   }
 
   /**
+   * Get an array of user details for a contact, containing at minimum the user ID & name.
+   *
+   * @param int $contactID
+   *
+   * @return array
+   *  CMS user details including
+   *  - id
+   *  - name (ie the system user name.
+   */
+  public function getUser($contactID) {
+    $ufMatch = civicrm_api3('UFMatch', 'getsingle', array(
+      'contact_id' => $contactID,
+      'domain_id' => CRM_Core_Config::domainID(),
+    ));
+    return array(
+      'id' => $ufMatch['uf_id'],
+      'name' => $ufMatch['uf_name']
+    );
+  }
+
+  /**
    * Get currently logged in user uf id.
    *
    * @return int|null
