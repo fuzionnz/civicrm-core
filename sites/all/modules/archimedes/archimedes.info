@@ -5,3 +5,6 @@ package = "Archimedes"
 version = "7.x-1.x"
 dependencies[] = environment
 files[] = archimedes.unsafe.inc
+project = archimedes
+project status url = https://projects.fuzion.co.nz/release-history
+version = "7.x-1.0"

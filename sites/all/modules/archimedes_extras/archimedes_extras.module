@@ -1,0 +1,50 @@
+<?php
+
+/**
+ * @file
+ *
+ */
+
+/**
+ * Implements hook_archimedes_alter().
+ *
+ * Adds additional checks for Archimedes.
+ */
+function archimedes_extras_archimedes_alter(&$owl) {
+  module_load_include('inc', 'archimedes_extras');
+  // Unstaged / uncommitted modifications in Git repos.
+  if ($values = archimedes_extras_git_status()) {
+    $owl->createField('field_git_status', $values);
+  }
+  else {
+    $owl->createField('field_git_status', '');
+  }
+
+  if (module_exists('civicrm')) {
+    if ($info = archimedes_extras_civicrm_gitinfo()) {
+      $owl->createField('field_civicrm_git_commit', $info['commit_hash']);
+      $owl->createField('field_civicrm_git_branch', $info['branch']);
+    }
+  }
+}
+
+/**
+ * Implements hook_archimedes_rows_alter().
+ */
+function archimedes_extras_archimedes_rows_alter(&$rows, &$owl) {
+  module_load_include('inc', 'archimedes_extras');
+  if (module_exists('civicrm')) {
+    $civicrm_git_commit = (string) $owl->getField('field_civicrm_git_commit');
+    if (!empty($civicrm_git_commit)) {
+      $rows[] = array(t('CiviCRM Git Commit'), $civicrm_git_commit);
+    }
+    $civicrm_git_branch = (string) $owl->getField('field_civicrm_git_branch');
+    if (!empty($civicrm_git_branch)) {
+      $rows[] = array(t('CiviCRM Git Branch'), $civicrm_git_branch);
+    }
+    $git_status = (string) $owl->getField('field_git_status');
+  }
+  if (!empty($git_status)) {
+    $rows[] = array(array('data' => t('Git Status'), 'style' => 'vertical-align: top;'), $git_status);
+  }
+}

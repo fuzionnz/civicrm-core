@@ -116,37 +116,41 @@ function archimedes_out() {
   require_once dirname(__FILE__) . '/archimedes.inc';
   $table_vars['header'] = array('Component', 'Value');
   $table_vars['rows'] = array();
-  $table_vars['empty'] = t("This report did not run. It is currently disabled.");
-//  $owl = archimedes_build_report();
+  if (variable_get('archimedes_disable_report', FALSE)) {
+     $table_vars['empty'] = t("This report did not run. It is currently disabled.");
+     return theme('table', $table_vars);
+  }
+  else {
+    $owl = archimedes_build_report();
 
-//  $header = array('Component', 'Value');
-//  $rows = array(
-//    array(t('Site title'),(string) $owl->getField('title')),
-//    array(t('Description'),(string) $owl->getField('body')),
-//    array(t('Servername'),(string) $owl->getField('field_servername')),
-//    array(t('Web Server'),(string) $owl->getField('field_webserver')),
-//    array(t('Web Root'),(string) $owl->getField('field_webroot')),
-//    array(t('DB Host'),(string) $owl->getField('field_dbhost')),
-//    array(t('DB Name'),(string) $owl->getField('field_dbname')),
-//    array(t('Users'),(string) $owl->getField('field_users')),
-//    array(t('DB Size'),(string) $owl->getField('field_db_size')),
-//    array(t('Site Data Size'),(string) $owl->getField('field_sitedata')),
-//    array(t('Webroot Size'),(string) $owl->getField('field_sitesize')),
-//    array(t('Directory Hash'), (string) $owl->getField('field_directory_hash')),
-//    array(t('Environment'), (string) $owl->getField('field_site_env')),
-//  );
-//  drupal_alter('archimedes_rows',$rows,$owl);
-//  $table = theme('table', array('header' => $header, 'rows' => $rows));
-//
-//  $header = array('Modules','Version','Description');
-//  $modules = theme('table', array('header' => $header, 'rows' => $owl->getField('field_drupal_mod')->toArray()));
-//
-//  $header = array('Themes','Version','Description');
-//  $themes = theme('table', array('header' => $header, 'rows' => $owl->getField('field_drupal_theme')->toArray()));
-//
-//  $output = '<p>' . t('This page shows the current output from of Archimedes Client for this website. It will not necessarily match what is known by the server.'). '</p>';
-//  return $output . $table . $modules . $themes;
-  return theme('table', $table_vars);
+    $header = array('Component', 'Value');
+    $rows = array(
+      array(t('Site title'),(string) $owl->getField('title')),
+      array(t('Description'),(string) $owl->getField('body')),
+      array(t('Servername'),(string) $owl->getField('field_servername')),
+      array(t('Web Server'),(string) $owl->getField('field_webserver')),
+      array(t('Web Root'),(string) $owl->getField('field_webroot')),
+      array(t('DB Host'),(string) $owl->getField('field_dbhost')),
+      array(t('DB Name'),(string) $owl->getField('field_dbname')),
+      array(t('Users'),(string) $owl->getField('field_users')),
+      array(t('DB Size'),(string) $owl->getField('field_db_size')),
+      array(t('Site Data Size'),(string) $owl->getField('field_sitedata')),
+      array(t('Webroot Size'),(string) $owl->getField('field_sitesize')),
+      array(t('Directory Hash'), (string) $owl->getField('field_directory_hash')),
+      array(t('Environment'), (string) $owl->getField('field_site_env')),
+    );
+    drupal_alter('archimedes_rows',$rows,$owl);
+    $table = theme('table', array('header' => $header, 'rows' => $rows));
+
+    $header = array('Modules','Version','Description');
+    $modules = theme('table', array('header' => $header, 'rows' => $owl->getField('field_drupal_mod')->toArray()));
+
+    $header = array('Themes','Version','Description');
+    $themes = theme('table', array('header' => $header, 'rows' => $owl->getField('field_drupal_theme')->toArray()));
+
+    $output = '<p>' . t('This page shows the current output from of Archimedes Client for this website. It will not necessarily match what is known by the server.'). '</p>';
+    return $output . $table . $modules . $themes;
+  }
 }
 
 /**

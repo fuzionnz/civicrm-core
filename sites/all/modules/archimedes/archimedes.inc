@@ -99,6 +99,7 @@ function archimedes_send_report() {
 function archimedes_build_report() {
   global $databases;
 
+  archimedes_load_library();
   $owl = new Archimedes('drupal', variable_get('site_mail', FALSE), archimedes_get_token());
 
   $owl->createField('title', variable_get('site_name', "Drupal"));
@@ -243,6 +244,7 @@ function archimedes_build_report() {
   $owl->createField('field_directory_hash', $dir_hash);
 
   if (variable_get('archimedes_use_unsafe_collection', FALSE)) {
+    module_load_include('inc', 'archimedes', 'archimedes.unsafe');
     $collect = new ArchimedesDrupalUnsafeCollection($owl);
     $collect->servername()
             ->database_size()
