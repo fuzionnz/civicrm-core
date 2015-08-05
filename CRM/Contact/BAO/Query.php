@@ -2918,6 +2918,9 @@ class CRM_Contact_BAO_Query {
     elseif (strpos($op, 'IN') !== FALSE) {
       $groups = array($op => $groups);
     }
+    elseif (is_array($groups) && count($groups)) {
+      $groups = array('IN' => $groups);
+    }
 
     // Find all the groups that are part of a saved search.
     $smartGroupClause = self::buildClause("id", $op, $groups, 'Int');
@@ -5171,6 +5174,12 @@ SELECT COUNT( conts.total_amount ) as cancel_count,
       case 'IS NOT EMPTY':
         $clause = " (NULLIF($field, '') IS NOT NULL) ";
         return $clause;
+
+      case 'IN':
+      case 'NOT IN':
+        if (!empty($value) && is_array($value) && !array_key_exists($op, $value)) {
+          $value = array($op => $value);
+        }
 
       default:
         if (empty($dataType)) {
