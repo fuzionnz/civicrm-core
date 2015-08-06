@@ -18,3 +18,5 @@ packages/
 tests
 tools
 distmaker
+header*
+
