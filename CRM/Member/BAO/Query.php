@@ -204,11 +204,26 @@ class CRM_Member_BAO_Query {
           $op = 'IN';
           $value = array_keys($value);
         }
+
+      case 'membership_type_id':
+        // CRM-17075 we are specifically handling the possibility we are dealing with the entity reference field
+        // for membership_type_id here (although status would be handled if converted). The unhandled pathway at the moment
+        // is from groupContactCache::load and this is a small fix to get the entity reference field to work.
+        // However, it would seem the larger fix would be to NOT invoke the form formValues for
+        // the load function. The where clause and the whereTables are saved so they should suffice to generate the query
+        // to get a contact list. But, better to deal with in 4.8 now...
+        if (is_string($value) && strpos($value, ',') && $op == '=') {
+          $value = array('IN' => explode(',', $value));
+        }
+
+
       case 'membership_status':
       case 'membership_status_id':
       case 'membership_type':
-      case 'membership_type_id':
       case 'member_id':
+        if (strstr($name, 'status') && is_string($value) && !is_numeric($value)) {
+          $value = CRM_Core_PseudoConstant::getKey('CRM_Member_BAO_Membership', 'status_id', $value);
+        }
         if (strpos($name, 'status') !== FALSE) {
           $name = 'status_id';
           $qillName = ts('Membership Status');
@@ -393,17 +408,24 @@ class CRM_Member_BAO_Query {
   }
 
   /**
+   * Build the search form.
+   *
    * @param CRM_Core_Form $form
    */
   public static function buildSearchForm(&$form) {
     $membershipStatus = CRM_Member_PseudoConstant::membershipStatus(NULL, NULL, 'label', FALSE, FALSE);
-    $form->add('select', 'membership_status_id', ts('Membership Status'), $membershipStatus, FALSE,
-      array('id' => 'membership_status_id', 'multiple' => 'multiple', 'class' => 'crm-select2')
-    );
+    $form->add('select', 'membership_status_id', ts('Membership Status(s)'), $membershipStatus, FALSE, array(
+      'id' => 'membership_status_id',
+      'multiple' => 'multiple',
+      'class' => 'crm-select2',
+    ));
 
-    $form->addSelect('membership_type_id',
-      array('entity' => 'membership', 'multiple' => 'multiple', 'label' => ts('Membership Type(s)'), 'option_url' => NULL, 'placeholder' => ts('- any -'))
-    );
+    $form->addEntityRef('membership_type_id', ts('Membership Type(s)'), array(
+      'entity' => 'MembershipType',
+      'multiple' => TRUE,
+      'placeholder' => ts('- any -'),
+      'select' => array('minimumInputLength' => 0),
+    ));
 
     $form->addElement('text', 'member_source', ts('Source'));
 
