@@ -1225,12 +1225,12 @@ class CRM_Report_Form extends CRM_Core_Form {
 
     $this->assignTabs();
     foreach (array('LEFT JOIN') as $term) {
-      $this->sql = str_replace($term, '<br>&nbsp&nbsp' . $term, $sql);
+      $sql = str_replace($term, '<br>&nbsp&nbsp' . $term, $sql);
     }
     foreach (array('FROM', 'WHERE', 'GROUP BY', 'ORDER BY', 'LIMIT', ';') as $term) {
       $sql = str_replace($term, '<br><br>' . $term, $sql);
     }
-    $this->sql .= $sql;
+    $this->sql .= $sql . "<br>";
 
     $this->assign('sql', $this->sql);
   }
@@ -2713,6 +2713,7 @@ WHERE cg.extends IN ('" . implode("','", $this->_customGroupExtends) . "') AND
     CRM_Utils_Hook::alterReportVar('sql', $this, $this);
 
     $sql = "{$this->_select} {$this->_from} {$this->_where} {$this->_groupBy} {$this->_having} {$this->_orderBy} {$this->_limit}";
+    $this->addToDeveloperTab($sql);
     return $sql;
   }
 
