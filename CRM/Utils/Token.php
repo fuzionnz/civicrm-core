@@ -1223,6 +1223,7 @@ class CRM_Utils_Token {
       foreach ($fields as $key => $val) {
         $returnProperties[$val] = 1;
       }
+      unset($returnProperties['group']);
     }
 
     $custom = array();
