@@ -51,7 +51,7 @@ class CRM_Core_BAO_NavigationTest extends CiviUnitTestCase {
   }
 
   /**
-   * Test that an existing report link is rebuilt under is't parent.
+   * Test that an existing report link is rebuilt under it's parent.
    *
    * Function tests CRM_Core_BAO_Navigation::rebuildReportsNavigation.
    */
@@ -65,7 +65,7 @@ class CRM_Core_BAO_NavigationTest extends CiviUnitTestCase {
     CRM_Core_BAO_Navigation::rebuildReportsNavigation();
     $parent_url = 'civicrm/report/list';
     $parent_url_params = 'compid=99&reset=1';
-    $parent_nav = CRM_Core_BAO_Navigation::getNavItemByUrl($parent_url, $parent_url_params);
+    $parent_nav = CRM_Core_BAO_Navigation::getNavItemByUrl($parent_url, $parent_url_params, CRM_Core_BAO_Navigation::createOrUpdateTopLevelReportsNavItem(CRM_Core_Config::domainID()));
     $this->assertNotEquals($parent_nav->id, 1);
     $changed_existing_nav = new CRM_Core_BAO_Navigation();
     $changed_existing_nav->id = $existing_nav->id;
