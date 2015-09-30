@@ -1268,7 +1268,9 @@ class CRM_Report_Form extends CRM_Core_Form {
         }
       }
     }
-    if (!empty($this->_options)) {
+    if (!empty($this->_options) &&
+        (!$this->_id || $this->_id && CRM_Report_BAO_ReportInstance::contactCanAdministerReport($this->_id)
+      )) {
       $this->tabs['ReportOptions'] = array(
         'title' => ts('Display Options'),
         'tpl' => 'ReportOptions',
@@ -1457,6 +1459,9 @@ class CRM_Report_Form extends CRM_Core_Form {
     if (empty($instanceId)) {
       $actions['save'] = ts('Create Report');
     }
+    elseif (!CRM_Report_BAO_ReportInstance::contactCanAdministerReport($instanceId)) {
+      unset($actions['save']);
+    }
 
     if ($this->_outputMode || $this->_id) {
       $actions['html'] = 'Refresh Results';
@@ -1479,7 +1484,7 @@ class CRM_Report_Form extends CRM_Core_Form {
       }
     }
 
-    if (CRM_Core_Permission::check('administer Reports')) {
+    if ($instanceId && CRM_Report_BAO_ReportInstance::contactCanAdministerReport($instanceId)) {
       $actions['delete'] = 'Delete report';
     }
 

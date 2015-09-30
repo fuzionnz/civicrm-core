@@ -557,6 +557,13 @@ ORDER BY parent_id, weight";
             return $showItem;
           }
         }
+        // CRM-17310 my reports allow people with access own reports to see the report if it is theirs.
+        elseif ($key == 'access own private reports') {
+          // Special permission processing for private reports.
+          $report_url = parse_url(ltrim($url, '/'));
+          $instance_id = CRM_Report_Utils_Report::getInstanceID($report_url['path']);
+          $hasPermission = $showItem = CRM_Report_BAO_ReportInstance::contactIsOwner($instance_id);
+        }
         else {
           $hasPermission = TRUE;
         }
@@ -895,6 +902,8 @@ ORDER BY parent_id, weight";
 
     // Create or update the All Reports link.
     self::createOrUpdateReportNavItem('All Reports', 'civicrm/report/list', 'reset=1', $reports_nav->id, 'access CiviReport', $domain_id);
+    // Create or update the My Reports link.
+    self::createOrUpdateReportNavItem('My Reports', 'civicrm/report/list', 'myreports=1&reset=1', $reports_nav->id, 'access CiviReport');
   }
 
   /**

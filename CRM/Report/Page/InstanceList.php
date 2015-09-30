@@ -109,9 +109,12 @@ class CRM_Report_Page_InstanceList extends CRM_Core_Page {
     elseif ($this->grouping) {
       $report .= " AND v.grouping = '{$this->grouping}' ";
     }
+    elseif ($this->myReports) {
+      $report .= " AND inst.owner_id = " . CRM_Core_Session::getLoggedInContactID();
+    }
 
     $sql = "
-        SELECT inst.id, inst.title, inst.report_id, inst.description, v.label, v.grouping,
+        SELECT inst.id, inst.title, inst.report_id, inst.description,  inst.owner_id, v.label, v.grouping,
         CASE
           WHEN comp.name IS NOT NULL THEN SUBSTRING(comp.name, 5)
           WHEN v.grouping IS NOT NULL THEN v.grouping
@@ -137,6 +140,7 @@ class CRM_Report_Page_InstanceList extends CRM_Core_Page {
     $config = CRM_Core_Config::singleton();
     $rows = array();
     $url = 'civicrm/report/instance';
+    $my_reports_grouping = 'My';
     while ($dao->fetch()) {
       if (in_array($dao->report_id, self::$_exceptions)) {
         continue;
@@ -146,6 +150,12 @@ class CRM_Report_Page_InstanceList extends CRM_Core_Page {
       if ($dao->compName == 'Contact' || $dao->compName == $dao->grouping) {
         $enabled = TRUE;
       }
+
+      // filter report listings for private reports
+      if (!empty($dao->owner_id) && CRM_Core_Session::getLoggedInContactID() != $dao->owner_id) {
+        continue;
+      }
+
       //filter report listings by permissions
       if (!($enabled && CRM_Report_Utils_Report::isInstancePermissioned($dao->id))) {
         continue;
@@ -159,13 +169,24 @@ class CRM_Report_Page_InstanceList extends CRM_Core_Page {
         if ($this->ovID) {
           $this->title = ts("Report(s) created from the template: %1", array(1 => $dao->label));
         }
-        $rows[$dao->compName][$dao->id]['title'] = $dao->title;
-        $rows[$dao->compName][$dao->id]['label'] = $dao->label;
-        $rows[$dao->compName][$dao->id]['description'] = $dao->description;
-        $rows[$dao->compName][$dao->id]['url'] = CRM_Utils_System::url("{$url}/{$dao->id}", "reset=1&output=criteria");
-        $rows[$dao->compName][$dao->id]['viewUrl'] = CRM_Utils_System::url("{$url}/{$dao->id}", 'force=1&reset=1');
-        $rows[$dao->compName][$dao->id]['actions'] = $this->getActionLinks($dao->id);
+
+        $report_grouping = $dao->compName;
+        if ($dao->owner_id != NULL) {
+          $report_grouping = $my_reports_grouping;
+        }
+        $rows[$report_grouping][$dao->id]['title'] = $dao->title;
+        $rows[$report_grouping][$dao->id]['label'] = $dao->label;
+        $rows[$report_grouping][$dao->id]['description'] = $dao->description;
+        $rows[$report_grouping][$dao->id]['url'] = CRM_Utils_System::url("{$url}/{$dao->id}", "reset=1&output=criteria");
+        $rows[$report_grouping][$dao->id]['viewUrl'] = CRM_Utils_System::url("{$url}/{$dao->id}", 'force=1&reset=1');
+        $rows[$report_grouping][$dao->id]['actions'] = $this->getActionLinks($dao->id);
       }
+    }
+    // Move My Reports to the beginning of the reports list
+    if (isset($rows[$my_reports_grouping])) {
+      $my_reports = $rows[$my_reports_grouping];
+      unset($rows[$my_reports_grouping]);
+      $rows = array($my_reports_grouping=> $my_reports) + $rows;
     }
     return $rows;
   }
@@ -178,6 +199,7 @@ class CRM_Report_Page_InstanceList extends CRM_Core_Page {
   public function run() {
     //Filters by source report template or by component
     $this->ovID = CRM_Utils_Request::retrieve('ovid', 'Positive', $this);
+    $this->myReports = CRM_Utils_Request::retrieve('myreports', 'String', $this);
     $this->compID = CRM_Utils_Request::retrieve('compid', 'Positive', $this);
     $this->grouping = CRM_Utils_Request::retrieve('grp', 'String', $this);
 
@@ -208,6 +230,7 @@ class CRM_Report_Page_InstanceList extends CRM_Core_Page {
       $this->assign('newButton', $newButton);
       $this->assign('templateUrl', $templateUrl);
       $this->assign('compName', $this->_compName);
+      $this->assign('myReports', $this->myReports);
     }
     return parent::run();
   }
@@ -221,7 +244,7 @@ class CRM_Report_Page_InstanceList extends CRM_Core_Page {
    */
   function getActionLinks($instanceID) {
     $urlCommon = 'civicrm/report/instance/' . $instanceID;
-    return array(
+    $actions = array(
       'save' => array(
         'url' => CRM_Utils_System::url($urlCommon, 'reset=1&output=save'),
         'label' => ts('Save a Copy'),
@@ -238,11 +261,13 @@ class CRM_Report_Page_InstanceList extends CRM_Core_Page {
         'url' => CRM_Utils_System::url($urlCommon, 'reset=1&force=1&output=csv'),
         'label' => ts('Export to csv'),
       ),
-      'delete' => array(
+    );
+    if (CRM_Core_Permission::check('administer Reports')) {
+      $actions['delete'] = array(
         'url' => CRM_Utils_System::url($urlCommon, 'action=delete'),
         'label' => ts('Delete report'),
-        // @todo define some confirm.
-      ),
-    );
+      );
+    }
+    return $actions;
   }
 }

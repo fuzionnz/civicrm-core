@@ -114,6 +114,8 @@ class CRM_Report_Form_Instance {
 
     $form->addElement('checkbox', 'addToDashboard', ts('Available for Dashboard?'), NULL,
       array('onclick' => "return showHideByValue('addToDashboard','','limit_result','table-row','radio',false);"));
+    $form->addElement('checkbox', 'add_to_my_reports', ts('Add to My Reports?'), NULL);
+
     $form->addElement('checkbox', 'is_reserved', ts('Reserved Report?'));
     if (!CRM_Core_Permission::check('administer reserved reports')) {
       $form->freeze('is_reserved');
@@ -259,6 +261,11 @@ class CRM_Report_Form_Instance {
       $defaults['description'] = CRM_Utils_Array::value('description', $defaults);
       $defaults['report_header'] = CRM_Utils_Array::value('header', $defaults);
       $defaults['report_footer'] = CRM_Utils_Array::value('footer', $defaults);
+      // CRM-17310 private reports option.
+      $defaults['add_to_my_reports'] = 0;
+      if (CRM_Utils_Array::value('owner_id', $defaults) != NULL) {
+        $defaults['add_to_my_reports'] = 1;
+      }
 
       if (!empty($defaults['navigation_id'])) {
         // Get the default navigation parent id.
@@ -343,6 +350,19 @@ class CRM_Report_Form_Instance {
     foreach ($unsetFields as $field) {
       unset($formValues[$field]);
     }
+
+    // CRM-17310 my reports functionality - we should set owner if the checkbox is 1,
+    // it seems to be not set at all if unchecked.
+    if (!empty($formValues['add_to_my_reports'])) {
+      $params['owner_id'] = CRM_Core_Session::singleton()->getLoggedInContactID();
+      $params['permission'] = 'access own private reports';
+      $params['grouprole'] = array();
+    }
+    else {
+      $params['owner_id'] = 'null';
+    }
+    unset($formValues['add_to_my_reports']);
+
     $view_mode = $formValues['view_mode'];
     // pass form_values as string
     $params['form_values'] = serialize($formValues);
