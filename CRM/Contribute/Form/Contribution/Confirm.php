@@ -1546,7 +1546,7 @@ class CRM_Contribute_Form_Contribution_Confirm extends CRM_Contribute_Form_Contr
     // or the user has not chosen the recurring option
 
     //this is online case validation.
-    if ((empty($form->_values['is_recur']) && $online) || empty($params['is_recur'])) {
+    if (empty($params['is_recur'])) {
       return NULL;
     }
 
