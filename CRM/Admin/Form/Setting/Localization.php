@@ -39,6 +39,10 @@ class CRM_Admin_Form_Setting_Localization extends CRM_Admin_Form_Setting {
   // use in postProcess (CRM-1496)
   protected $_currencySymbols;
 
+  protected $_settings = array(
+    'contact_default_language' => CRM_Core_BAO_Setting::LOCALIZATION_PREFERENCES_NAME,
+  );
+
   /**
    * Build the form object.
    */
