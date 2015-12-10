@@ -4713,6 +4713,7 @@ civicrm_relationship.is_permission_a_b = 0
       while ($dao->fetch()) {
         $ids[] = $dao->id;
       }
+      $dao->free();
       return implode(',', $ids);
     }
 
