@@ -233,7 +233,10 @@ class CRM_Contact_Import_Parser_Contact extends CRM_Contact_Import_Parser {
     }
 
     $this->_updateWithId = FALSE;
-    if (in_array('id', $this->_mapperKeys)
+    if (in_array('id', $this->_mapperKeys) || ($this->_externalIdentifierIndex >= 0 && in_array($this->_onDuplicate, array(
+          CRM_Import_Parser::DUPLICATE_UPDATE,
+          CRM_Import_Parser::DUPLICATE_FILL,
+        )))
     ) {
       $this->_updateWithId = TRUE;
     }
