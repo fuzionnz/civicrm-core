@@ -1494,6 +1494,9 @@ class CRM_Contact_BAO_Query {
       ) {
         self::convertCustomRelativeFields($formValues, $params, $values, $id);
       }
+      elseif (!empty($values) && !is_array($values) && self::isCustomDateField($id)) {
+        $params[] = array($id, '=', CRM_Utils_Date::processDate($values), 0, $wildcard);
+      }
       elseif (preg_match('/_date_relative$/', $id) ||
         $id == 'event_relative' ||
         $id == 'case_from_relative' ||
@@ -4550,6 +4553,23 @@ civicrm_relationship.is_permission_a_b = 0
   }
 
   /**
+   * Are we dealing with custom field of type date.
+   *
+   * @param $fieldName
+   *
+   * @return bool
+   */
+  public static function isCustomDateField($fieldName) {
+    if (($customFieldID = CRM_Core_BAO_CustomField::getKeyID($fieldName)) == FALSE) {
+      return FALSE;
+    }
+    if ('Date' == civicrm_api3('CustomField', 'getvalue', array('id' => $customFieldID, 'return' => 'data_type'))) {
+      return TRUE;
+    }
+    return FALSE;
+  }
+
+  /**
    * Create and query the db for an contact search.
    *
    * @param int $offset
@@ -5333,7 +5353,9 @@ SELECT COUNT( conts.total_amount ) as cancel_count,
           // We could get away with keeping this in 4.6 if we make it such that it throws an enotice in 4.7 so
           // people have to de-slopify it.
           if (!empty($value[0])) {
-            $dragonPlace = $iAmAnIntentionalENoticeThatWarnsOfAProblemYouShouldReport;
+            if ($op != 'BETWEEN') {
+              $dragonPlace = $iAmAnIntentionalENoticeThatWarnsOfAProblemYouShouldReport;
+            }
             if (($queryString = CRM_Core_DAO::createSqlFilter($field, array($op => $value), $dataType)) != FALSE) {
               return $queryString;
             }
@@ -5813,19 +5835,19 @@ AND   displayRelType.is_active = 1
     $qillOperators = CRM_Core_SelectValues::getSearchBuilderOperators();
 
     if ($fieldName == 'activity_type_id') {
-      $pseduoOptions = CRM_Core_PseudoConstant::activityType(TRUE, TRUE, FALSE, 'label', TRUE);
+      $pseudoOptions = CRM_Core_PseudoConstant::activityType(TRUE, TRUE, FALSE, 'label', TRUE);
     }
     elseif ($daoName == 'CRM_Event_DAO_Event' && $fieldName == 'id') {
-      $pseduoOptions = CRM_Event_BAO_Event::getEvents(0, $fieldValue, TRUE, TRUE, TRUE);
+      $pseudoOptions = CRM_Event_BAO_Event::getEvents(0, $fieldValue, TRUE, TRUE, TRUE);
     }
     elseif ($daoName == 'CRM_Contact_DAO_Group' && $fieldName == 'id') {
-      $pseduoOptions = CRM_Core_PseudoConstant::group();
+      $pseudoOptions = CRM_Core_PseudoConstant::group();
     }
     elseif ($fieldName == 'country_id') {
-      $pseduoOptions = CRM_Core_PseudoConstant::country();
+      $pseudoOptions = CRM_Core_PseudoConstant::country();
     }
     elseif ($daoName) {
-      $pseduoOptions = CRM_Core_PseudoConstant::get($daoName, $fieldName, $pseduoExtraParam = array());
+      $pseudoOptions = CRM_Core_PseudoConstant::get($daoName, $fieldName, $pseduoExtraParam = array());
     }
 
     //API usually have fieldValue format as array(operator => array(values)),
@@ -5837,9 +5859,9 @@ AND   displayRelType.is_active = 1
 
     if (is_array($fieldValue)) {
       $qillString = array();
-      if (!empty($pseduoOptions)) {
+      if (!empty($pseudoOptions)) {
         foreach ((array) $fieldValue as $val) {
-          $qillString[] = CRM_Utils_Array::value($val, $pseduoOptions, $val);
+          $qillString[] = CRM_Utils_Array::value($val, $pseudoOptions, $val);
         }
         $fieldValue = implode(', ', $qillString);
       }
@@ -5859,8 +5881,11 @@ AND   displayRelType.is_active = 1
         $fieldValue = implode($separator, $fieldValue);
       }
     }
-    elseif (!empty($pseduoOptions) && array_key_exists($fieldValue, $pseduoOptions)) {
-      $fieldValue = $pseduoOptions[$fieldValue];
+    elseif (!empty($pseudoOptions) && array_key_exists($fieldValue, $pseudoOptions)) {
+      $fieldValue = $pseudoOptions[$fieldValue];
+    }
+    elseif ($type === CRM_Utils_Type::T_DATE) {
+      $fieldValue = CRM_Utils_Date::customFormat($fieldValue);
     }
 
     return array(CRM_Utils_Array::value($op, $qillOperators, $op), $fieldValue);
