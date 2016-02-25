@@ -7,6 +7,7 @@
 			  ->propertyOrderBy('created', 'DESC')
 			  ->propertyCondition('promote', 1) // Promoted to front page
 			  ->fieldCondition('field_featured_image', 'fid', 'NULL', '!=')
+			  ->range(0, 10)
 			  ->execute();
 			$nodes = entity_load('node', array_keys($entities['node']));
 			$total_results = count($nodes);

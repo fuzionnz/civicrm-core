@@ -1,5 +1,5 @@
 <?php require_once DRUPAL_ROOT.base_path().path_to_theme().'/templates/header.php';?>
-<?php drupal_add_css(drupal_get_path('theme', 'greens') . "/css/internal.css"); ?>
+<?php drupal_add_css(drupal_get_path('theme', 'fyeg') . "/css/internal.css"); ?>
 <div class="internal">
 	<div class="row-fluid">
 		<div id="article-column" class="span8">

@@ -14,7 +14,7 @@
 				<div class="span8">
 				  <div id="buttons">
 					  <ul>
-					  	<li id="contact">Quick Contact</li>
+					  	<li id="contact">Contact Info</li>
 					  	<li id="search">
 					  		<img class="off" src="<?php echo "$base_path$directory/images/"?>icon-search-retina.png">
 					  		<img class="on" src="<?php echo "$base_path$directory/images/"?>icon-search-hover-retina.png">

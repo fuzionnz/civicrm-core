@@ -1,5 +1,5 @@
-name = Greens
-description = Greens
+name = FYEG
+description = "FYEG 2015 (new logo)"
 package = Core
 version = VERSION
 core = 7.x
@@ -10,6 +10,7 @@ scripts[] = bootstrap/js/bootstrap.min.js
 
 stylesheets[all][] = css/swiper.css
 stylesheets[all][] = css/style.css
+stylesheets[all][] = css/internal.css
 
 scripts[] = js/swiper.js
 scripts[] = js/script.js

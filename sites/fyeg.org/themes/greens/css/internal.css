@@ -24,7 +24,7 @@
 	}
 
 .internal .article .article-title {
-	color: #4BB749;
+	color: #128c3b;
 	font-size: 18px;
 	line-height: 24px;
 	margin: -10px 0 20px;
@@ -44,7 +44,7 @@
 }
 
 .box.launch-box .title {
-	background: #4BB749;
+	background: #128C3B;
 	color: white;
 	width: 70%;
 	margin: -50px auto 20px auto;
@@ -105,7 +105,7 @@
 }
 
 .box.members-box.executive .executive-name {
-	color: #4BB749;
+	color: #128C3B;
 	font-size: 14px;
 	font-weight: bold;
 	margin-top: 20px;
@@ -127,7 +127,7 @@
 
 
 .sorting-bar {
-	background: #4BB749;
+	background: #128C3B;
 	color: white;
 	overflow: hidden;
 	border-radius: 4px;
@@ -195,13 +195,13 @@
 }
 
 .box.office .name {
-	color: #4BB749;
+	color: #128C3B;
 	font-size: 14px;
 	font-weight: bold;
 }
 
 .box.office .lastname {
-	color: #4BB749;
+	color: #128C3B;
 	font-size: 14px;
 	font-weight: bold;
 }
@@ -218,7 +218,7 @@
 }
 
 .box.office .email {
-	color: #4BB749;
+	color: #128C3B;
 	font-size: 12px;
 	margin-top: 20px;
 }
@@ -228,7 +228,7 @@
 	}
 
 .box.office .social {
-	color: #4BB749;
+	color: #128C3B;
 	font-size: 12px;
 }
 
@@ -237,7 +237,7 @@
 }
 
 .box.office a {
-	color: #4BB749;
+	color: #128C3B;
 }
 
 .box.office ul {
@@ -249,11 +249,11 @@
    content: "•";
    font-size: 120%;
    padding-right: 5px;
-   color: #4BB749;	
+   color: #128C3B;	
 }
 
 a.download-pdf {
-	background: #4BB749;
+	background: #128C3B;
 	color: white !important;
 	width: 100px;
 	padding: 10px;
@@ -296,7 +296,7 @@ a.download-pdf {
 }
 
 .ui-tabs li.ui-state-active {
-	background :  #4BB749 !important;
+	background :  #128C3B !important;
 }
 
 .ui-tabs li.ui-state-active a {
