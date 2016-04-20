@@ -269,7 +269,11 @@ class CRM_Contribute_BAO_Contribution extends CRM_Contribute_DAO_Contribution {
    * @return int
    */
   protected static function ensureFinancialTypeMatchesLineItems($financialTypeID, $lineItems) {
+    $lineItemFinancialTypeID = NULL;
     foreach ($lineItems as $lineItem) {
+      if (empty($lineItem)) {
+        continue;
+      }
       foreach ($lineItem as $item) {
         if (!isset($lineItemFinancialTypeID)) {
           $lineItemFinancialTypeID = $item['financial_type_id'];
@@ -279,7 +283,7 @@ class CRM_Contribute_BAO_Contribution extends CRM_Contribute_DAO_Contribution {
         }
       }
     }
-    return $lineItemFinancialTypeID;
+    return $lineItemFinancialTypeID ? : $financialTypeID;
   }
 
   /**
