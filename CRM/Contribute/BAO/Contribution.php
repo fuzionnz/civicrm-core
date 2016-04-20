@@ -103,6 +103,9 @@ class CRM_Contribute_BAO_Contribution extends CRM_Contribute_DAO_Contribution {
     if (empty($params)) {
       return NULL;
     }
+    if (empty($params['id']) && !empty($params['line_item'])) {
+      $params['financial_type_id'] = self::ensureFinancialTypeMatchesLineItems($params['financial_type_id'], $params['line_item']);
+    }
     //per http://wiki.civicrm.org/confluence/display/CRM/Database+layer we are moving away from $ids array
     $contributionID = CRM_Utils_Array::value('contribution', $ids, CRM_Utils_Array::value('id', $params));
     $duplicates = array();
@@ -252,6 +255,31 @@ class CRM_Contribute_BAO_Contribution extends CRM_Contribute_DAO_Contribution {
     }
 
     return $result;
+  }
+
+  /**
+   *Use the line items financial type for the contribution if consistent.
+   *
+   * If all the line items have the same financial type then that should override
+   * any type set on the contribution itself.
+   *
+   * @param int $financialTypeID
+   * @param array $lineItems
+   *
+   * @return int
+   */
+  protected static function ensureFinancialTypeMatchesLineItems($financialTypeID, $lineItems) {
+    foreach ($lineItems as $lineItem) {
+      foreach ($lineItem as $item) {
+        if (!isset($lineItemFinancialTypeID)) {
+          $lineItemFinancialTypeID = $item['financial_type_id'];
+        }
+        if ($item['financial_type_id'] <> $lineItemFinancialTypeID) {
+          return $financialTypeID;
+        }
+      }
+    }
+    return $lineItemFinancialTypeID;
   }
 
   /**
