@@ -168,6 +168,7 @@ class CRM_Contribute_BAO_ContributionPage extends CRM_Contribute_DAO_Contributio
       'amount',
       'receipt_date',
       'is_pay_later',
+      'is_recur',
     );
 
     foreach ($valuesRequiredForTemplate as $valueRequiredForTemplate) {
@@ -385,6 +386,7 @@ class CRM_Contribute_BAO_ContributionPage extends CRM_Contribute_DAO_Contributio
         'is_pay_later' => $values['is_pay_later'],
         'receipt_date' => !$values['receipt_date'] ? NULL : date('YmdHis', strtotime($values['receipt_date'])),
         'pay_later_receipt' => CRM_Utils_Array::value('pay_later_receipt', $values),
+        'is_recur' => $values['is_recur'],
       );
 
       if ($contributionTypeId = CRM_Utils_Array::value('financial_type_id', $values)) {
