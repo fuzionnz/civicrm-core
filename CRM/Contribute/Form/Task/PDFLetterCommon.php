@@ -239,6 +239,11 @@ class CRM_Contribute_Form_Task_PDFLetterCommon extends CRM_Contact_Form_Task_PDF
       );
       $contribution = $contributions[$contributionId] = $contribution[$contributionId];
 
+      // Assign this here so tokens hooks parsing smarty can access it.
+      // @todo move the parsing of the contact details to later on & fully resolve the contributions first.
+      // Note this assignment will be overwritten but as the hook is called after each overwrite in this cycle
+      // they will not miss information.
+      CRM_Core_Smarty::singleton()->assign('contributions', $contributions);
       if ($isIncludeSoftCredits) {
         //@todo find out why this happens & add comments
         list($contactID) = explode('-', $item);
