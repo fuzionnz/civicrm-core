@@ -63,7 +63,7 @@
         </div>
       {/if}
     {elseif $contributeMode EQ 'notify' OR ($contributeMode EQ 'direct' && $is_recur) }
-      <div>{ts 1=$paymentProcessor.name}Your contribution has been submitted to %1 for processing. Please print this page for your records.{/ts}</div>
+      <div>Please print this page for your records.</div>
         {if $is_email_receipt}
       <div>
         {if $onBehalfEmail AND ($onBehalfEmail neq $email)}
