@@ -441,17 +441,22 @@ LEFT JOIN civicrm_custom_field ON (civicrm_custom_field.custom_group_id = civicr
           $subTypeClauses[] = "civicrm_custom_group.extends_entity_column_value LIKE '%" . $subType . "%'";
         }
       }
-      $subTypeClause = '(' .  implode(' OR ', $subTypeClauses) . ')';
-      if (!$onlySubType) {
-        $subTypeClause = '(' . $subTypeClause . '  OR civicrm_custom_group.extends_entity_column_value IS NULL )';
+      if (!empty($subTypeClauses)) {
+        $subTypeClause = '(' .  implode(' OR ', $subTypeClauses) . ')';
+        if (!$onlySubType) {
+          $subTypeClause = '(' . $subTypeClause . '  OR civicrm_custom_group.extends_entity_column_value IS NULL )';
+        }
       }
 
       $strWhere = "
 WHERE civicrm_custom_group.is_active = 1
   AND civicrm_custom_field.is_active = 1
   AND civicrm_custom_group.extends IN ($in)
-  AND $subTypeClause
 ";
+      if (!empty($subTypeClause)) {
+        $strWhere .= "AND $subTypeClause";
+      }
+
       if ($subName) {
         $strWhere .= " AND civicrm_custom_group.extends_entity_column_id = {$subName} ";
       }
