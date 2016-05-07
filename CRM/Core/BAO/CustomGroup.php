@@ -433,7 +433,13 @@ LEFT JOIN civicrm_custom_field ON (civicrm_custom_field.custom_group_id = civicr
 
     if (!empty($subTypes)) {
       foreach ($subTypes as $key => $subType) {
-        $subTypeClauses[] = "civicrm_custom_group.extends_entity_column_value LIKE '%" . self::validateSubTypeByEntity($entityType, $subType) . "%'";
+        if ($subType = self::validateSubTypeByEntity($entityType, $subType)) {
+          // @TODO: LIKE %foo% here means contact type 'Contact'
+          // incorrectly matches a subtype of 'Media_Contact'?
+          //
+          // Is this the intended behaviour?
+          $subTypeClauses[] = "civicrm_custom_group.extends_entity_column_value LIKE '%" . $subType . "%'";
+        }
       }
       $subTypeClause = '(' .  implode(' OR ', $subTypeClauses) . ')';
       if (!$onlySubType) {
@@ -635,16 +641,21 @@ ORDER BY civicrm_custom_group.weight,
     if (is_numeric($subType)) {
       return $subType;
     }
+
     $contactTypes = civicrm_api3('Contact', 'getoptions', array('field' => 'contact_type'));
-    if ($entityType != 'Contact' && !in_array($entityType, $contactTypes['values'])) {
-      // Not quite sure if we want to fail this hard. But quiet ignore would be pretty bad too.
-      // Am inclined to go with this for RC release & considering softening.
-      throw new CRM_Core_Exception('Invalid Entity Filter');
+    if ($entityType != 'Contact' && !array_key_exists($entityType, $contactTypes['values'])) {
+      $errorMsg = 'Rejected "' . htmlspecialchars($subtype) .
+        '" as not a valid subtype of "' . htmlspecialchars($entityType) . '".';
+      CRM_Core_Error::debug_log_message($errorMsg);
+      return false;
     }
+
     $subTypes = civicrm_api3('Contact', 'getoptions', array('field' => 'contact_sub_type'));
-    if (!isset($subTypes['values'][$subType])) {
-      // Same comments about fail hard as above.
-      throw new CRM_Core_Exception('Invalid Filter');
+    if (!array_key_exists($subType, $subTypes['values'])) {
+      $errorMsg = 'Rejected "' . htmlspecialchars($subType) .
+        '" as not a valid subtype of "' . htmlspecialchars($entityType) . '".';
+      CRM_Core_Error::debug_log_message($errorMsg);
+      return false;
     }
     return $subType;
   }
