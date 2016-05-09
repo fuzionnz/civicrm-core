@@ -109,7 +109,7 @@ class CRM_Core_BAO_CustomGroupTest extends CiviUnitTestCase {
    * Note that the function seems to support a range of formats so 3 are tested. Yay for
    * inconsistency.
    */
-  public function testGetTreeContactSubTypeWhenDisabled() {
+  public function testGetTreeDisabledContactSubType() {
     // Set up contact type Foo.
     $this->callAPISuccess('ContactType', 'create', array('name' => 'Foo', 'label' => 'foo', 'parent_id' => 'Individual'));
 

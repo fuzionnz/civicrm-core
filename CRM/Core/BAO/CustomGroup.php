@@ -444,21 +444,28 @@ LEFT JOIN civicrm_custom_field ON (civicrm_custom_field.custom_group_id = civicr
       $in = "'$entityType'";
     }
 
+    $subTypeClauses = array();
     if (!empty($subTypes)) {
       foreach ($subTypes as $key => $subType) {
-        $subTypeClauses[] = self::whereListHas("civicrm_custom_group.extends_entity_column_value", self::validateSubTypeByEntity($entityType, $subType));
+        if ($subType = self::validateSubTypeByEntity($entityType, $subType)) {
+          $subTypeClauses[] = self::whereListHas("civicrm_custom_group.extends_entity_column_value", self::validateSubTypeByEntity($entityType, $subType));
+        }
       }
-      $subTypeClause = '(' .  implode(' OR ', $subTypeClauses) . ')';
-      if (!$onlySubType) {
-        $subTypeClause = '(' . $subTypeClause . '  OR civicrm_custom_group.extends_entity_column_value IS NULL )';
+      if (!empty($subTypeClauses)) {
+        $subTypeClause = '(' .  implode(' OR ', $subTypeClauses) . ')';
+        if (!$onlySubType) {
+          $subTypeClause = '(' . $subTypeClause . '  OR civicrm_custom_group.extends_entity_column_value IS NULL )';
+        }
       }
 
       $strWhere = "
 WHERE civicrm_custom_group.is_active = 1
   AND civicrm_custom_field.is_active = 1
   AND civicrm_custom_group.extends IN ($in)
-  AND $subTypeClause
 ";
+      if (!empty($subTypeClause)) {
+        $strWhere .= "  AND $subTypeClause";
+      }
       if ($subName) {
         $strWhere .= " AND civicrm_custom_group.extends_entity_column_id = {$subName} ";
       }
@@ -648,19 +655,27 @@ ORDER BY civicrm_custom_group.weight,
    */
   protected static function validateSubTypeByEntity($entityType, $subType) {
     $subType = trim($subType, CRM_Core_DAO::VALUE_SEPARATOR);
+    // @TODO This validates any numeric input as being a valid subType of the
+    // provided $entityType, which addresses SQLi but is not a true check
+    // of whether it's a valid subType.
     if (is_numeric($subType)) {
       return $subType;
     }
     $contactTypes = civicrm_api3('Contact', 'getoptions', array('field' => 'contact_type'));
     if ($entityType != 'Contact' && !in_array($entityType, $contactTypes['values'])) {
-      // Not quite sure if we want to fail this hard. But quiet ignore would be pretty bad too.
-      // Am inclined to go with this for RC release & considering softening.
-      throw new CRM_Core_Exception('Invalid Entity Filter');
+      Civi::log()->error('Rejected "{subType}" as not a valid subtype of {entityType}', array(
+        'subType' => $subType,
+        'entityType' => $entityType,
+      ));
+      return false;
     }
     $subTypes = civicrm_api3('Contact', 'getoptions', array('field' => 'contact_sub_type'));
     if (!isset($subTypes['values'][$subType])) {
-      // Same comments about fail hard as above.
-      throw new CRM_Core_Exception('Invalid Filter');
+      Civi::log()->error('Rejected "{subType}" as not a valid subtype of {entityType}', array(
+        'subType' => $subType,
+        'entityType' => $entityType,
+      ));
+      return false;
     }
     return $subType;
   }
