@@ -108,8 +108,9 @@ class CRM_Core_BAO_CustomGroupTest extends CiviUnitTestCase {
    */
   public function testRetrieveEmptyParams() {
     $params = array();
-    $customGroup = CRM_Core_BAO_CustomGroup::retrieve($params, $dafaults);
-    $this->assertNull($customGroup, 'Check that no custom Group is retreived');
+    $defaults = array();
+    $customGroup = CRM_Core_BAO_CustomGroup::retrieve($params, $defaults);
+    $this->assertNull($customGroup, 'Check that no custom Group is retrieved');
   }
 
   /**
@@ -117,7 +118,8 @@ class CRM_Core_BAO_CustomGroupTest extends CiviUnitTestCase {
    */
   public function testRetrieveInvalidParams() {
     $params = array('id' => 99);
-    $customGroup = CRM_Core_BAO_CustomGroup::retrieve($params, $dafaults);
+    $defaults = array();
+    $customGroup = CRM_Core_BAO_CustomGroup::retrieve($params, $defaults);
     $this->assertNull($customGroup, 'Check that no custom Group is retreived');
   }
 
@@ -143,7 +145,8 @@ class CRM_Core_BAO_CustomGroupTest extends CiviUnitTestCase {
     $customGroupId = $customGroup->id;
 
     $params = array('id' => $customGroupId);
-    $customGroup = CRM_Core_BAO_CustomGroup::retrieve($params, $dafaults);
+    $defaults = array();
+    $customGroup = CRM_Core_BAO_CustomGroup::retrieve($params, $defaults);
     $dbCustomGroupTitle = $this->assertDBNotNull('CRM_Core_DAO_CustomGroup', $customGroupId, 'title', 'id',
       'Database check for custom group record.'
     );
@@ -151,7 +154,7 @@ class CRM_Core_BAO_CustomGroupTest extends CiviUnitTestCase {
     $this->assertEquals($customGrouptitle, $dbCustomGroupTitle);
     //check retieve values
     unset($groupParams['version']);
-    $this->assertAttributesEquals($groupParams, $dafaults);
+    $this->assertAttributesEquals($groupParams, $defaults);
 
     //cleanup DB by deleting customGroup
     Custom::deleteGroup($customGroup);
