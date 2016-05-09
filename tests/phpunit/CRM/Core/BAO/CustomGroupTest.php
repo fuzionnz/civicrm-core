@@ -104,6 +104,40 @@ class CRM_Core_BAO_CustomGroupTest extends CiviUnitTestCase {
   }
 
   /**
+   * Test calling getTree with contact subtype data.
+   *
+   * Note that the function seems to support a range of formats so 3 are tested. Yay for
+   * inconsistency.
+   */
+  public function testGetTreeContactSubTypeWhenDisabled() {
+    // Set up contact type Foo.
+    $this->callAPISuccess('ContactType', 'create', array('name' => 'Foo', 'label' => 'foo', 'parent_id' => 'Individual'));
+
+    // Add custom group & fields on Foo.
+    $customGroupParams = array(
+      'name' => 'foo_fields',
+      'title' => 'Foo Fields',
+      'extends' => 'Individual',
+      'extends_entity_column_value' => array('foo')
+    );
+    $customGroup = $this->customGroupCreate($customGroupParams);
+    $customField = $this->customFieldCreate(array('custom_group_id' => $customGroup['id']));
+
+    // Retrieve Foo contact type.
+    $contactType = $this->callAPISuccess('ContactType', 'get', array('name' => 'Foo'));
+    $params = reset($contactType['values']);
+
+    // Disable Foo contact type.
+    $params['is_active'] = 0;
+    $this->callAPISuccess('ContactType', 'create', $params);
+
+    $result = CRM_Core_BAO_CustomGroup::getTree('Individual', NULL, NULL, NULL, array('Foo'));
+    $this->assertEquals('Custom Field', $result[$customGroup['id']]['fields'][$customField['id']]['label']);
+
+    $this->customGroupDelete($customGroup['id']);
+  }
+
+  /**
    * Test retrieve() with Empty Params.
    */
   public function testRetrieveEmptyParams() {
