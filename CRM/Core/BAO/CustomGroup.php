@@ -450,11 +450,17 @@ LEFT JOIN civicrm_custom_field ON (civicrm_custom_field.custom_group_id = civicr
         if ($subType = self::validateSubTypeByEntity($entityType, $subType)) {
           $subTypeClauses[] = self::whereListHas("civicrm_custom_group.extends_entity_column_value", self::validateSubTypeByEntity($entityType, $subType));
         }
+        else {
+          return false;
+        }
       }
       if (!empty($subTypeClauses)) {
         $subTypeClause = '(' .  implode(' OR ', $subTypeClauses) . ')';
         if (!$onlySubType) {
           $subTypeClause = '(' . $subTypeClause . '  OR civicrm_custom_group.extends_entity_column_value IS NULL )';
+        }
+        else {
+          return false;
         }
       }
 
