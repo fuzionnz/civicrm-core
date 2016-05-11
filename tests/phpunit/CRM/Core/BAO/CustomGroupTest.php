@@ -49,27 +49,54 @@ class CRM_Core_BAO_CustomGroupTest extends CiviUnitTestCase {
   /**
    * Test calling getTree with contact subtype data.
    *
-   * Note that the function seems to support a range of formats so 3 are tested. Yay for
-   * inconsistency.
+   * Note that the function seems to support a range of formats so 3 are tested.
+   * Yay for inconsistency.
    */
   public function testGetTreeContactSubType() {
-    $this->callAPISuccess('ContactType', 'create', array('name' => 'Big Bank', 'label' => 'biggee', 'parent_id' => 'Organization'));
-    $customGroup = $this->CustomGroupCreate(array('extends' => 'Organization', 'extends_entity_column_value' => array('Big_Bank')));
-    $customField = $this->customFieldCreate(array('custom_group_id' => $customGroup['id']));
-    $result1 = CRM_Core_BAO_CustomGroup::getTree('Organization', NULL, NULL, NULL, array('Big_Bank'));
-    $this->assertEquals('Custom Field', $result1[$customGroup['id']]['fields'][$customField['id']]['label']);
-    $result = CRM_Core_BAO_CustomGroup::getTree('Organization', NULL, NULL, NULL, CRM_Core_DAO::VALUE_SEPARATOR . 'Big_Bank' . CRM_Core_DAO::VALUE_SEPARATOR);
-    $this->assertEquals($result1, $result);
-    $result = CRM_Core_BAO_CustomGroup::getTree('Organization', NULL, NULL, NULL, 'Big_Bank');
-    $this->assertEquals($result1, $result);
-    try {
-      CRM_Core_BAO_CustomGroup::getTree('Organization', NULL, NULL, NULL, array('Small Kind Bank'));
-    }
-    catch (CRM_Core_Exception $e) {
-      $this->customGroupDelete($customGroup['id']);
-      return;
-    }
-    $this->fail('There is no such thing as a small kind bank');
+    $subTypeName = 'OrganizationSubType';
+    $groupName = 'SubTypeCustomGroup';
+    $fieldName = 'SubTypeCustomField';
+
+    // Create subtype.
+    $this->callAPISuccess('ContactType', 'create', array(
+      'name' => $subTypeName,
+      'label' => $subTypeName,
+      'parent_id' => 'Organization')
+    );
+
+    // Create Custom Group & Custom Field belonging to subtype.
+    $customGroup = $this->CustomGroupCreate(array(
+      'name' => $groupName,
+      'label' => $groupName,
+      'extends' => 'Organization',
+      'extends_entity_column_value' => array($subTypeName)
+    ));
+    $customField = $this->customFieldCreate(array(
+      'label' => $fieldName,
+      'name' => $fieldName,
+      'custom_group_id' => $customGroup['id'],
+    ));
+
+    // Ensure getTree() handles $subType = array of subtype name.
+    $result1 = CRM_Core_BAO_CustomGroup::getTree('Organization', NULL, NULL, NULL, array($subTypeName));
+    $this->assertEquals($fieldName, $result1[$customGroup['id']]['fields'][$customField['id']]['label'], 'CRM_Core_BAO_CustomGroup::getTree() should accept $subType as array.');
+
+    // Ensure getTree() handles CRM_Core_DAO::VALUE_SEPARATOR wrapped string.
+    // Compare to previous result.
+    $result = CRM_Core_BAO_CustomGroup::getTree('Organization', NULL, NULL, NULL, CRM_Core_DAO::VALUE_SEPARATOR . $subTypeName . CRM_Core_DAO::VALUE_SEPARATOR);
+    $this->assertEquals($result1, $result, 'CRM_Core_BAO_CustomGroup::getTree() should accept $subType wrapped with CRM_Core_DAO::VALUE_SEPARATOR.');
+
+    // Ensure getTree() handles $subType = string
+    // Compare to previous result.
+    $result = CRM_Core_BAO_CustomGroup::getTree('Organization', NULL, NULL, NULL, $subTypeName);
+    $this->assertEquals($result1, $result, 'CRM_Core_BAO_CustomGroup::getTree() should accept $subType as string.');
+
+    // Clean up custom group.
+    $this->customGroupDelete($customGroup['id']);
+
+    // Ensure getTree() returns false for non-existent type.
+    $result = CRM_Core_BAO_CustomGroup::getTree('Organization', NULL, NULL, NULL, array('NONEXISTENT SUBTYPE'));
+    $this->assertFalse($result, 'CRM_Core_BAO_CustomGroup::getTree() should return false for invalid subtype.');
   }
 
   /**
@@ -88,6 +115,7 @@ class CRM_Core_BAO_CustomGroupTest extends CiviUnitTestCase {
     ));
     $customField = $this->customFieldCreate(array('custom_group_id' => $customGroup['id']));
     $result1 = CRM_Core_BAO_CustomGroup::getTree('Campaign', NULL, NULL, NULL, '12');
+    $this->assertNotEquals(false, $result1, 'Ensure custom group tree returned for Campaign is not false.');
     $this->assertEquals('Custom Field', $result1[$customGroup['id']]['fields'][$customField['id']]['label']);
     $this->customGroupDelete($customGroup['id']);
   }
@@ -99,33 +127,39 @@ class CRM_Core_BAO_CustomGroupTest extends CiviUnitTestCase {
     $customGroup = $this->CustomGroupCreate(array('extends' => 'Activity', 'extends_entity_column_value' => 1));
     $customField = $this->customFieldCreate(array('custom_group_id' => $customGroup['id']));
     $result = CRM_Core_BAO_CustomGroup::getTree('Activity', NULL, NULL, NULL, 1);
+    $this->assertNotEquals(false, $result, 'Ensure custom group tree returned for Activity is not false.');
     $this->assertEquals('Custom Field', $result[$customGroup['id']]['fields'][$customField['id']]['label']);
     $this->customGroupDelete($customGroup['id']);
   }
 
   /**
-   * Test calling getTree with contact subtype data.
-   *
-   * Note that the function seems to support a range of formats so 3 are tested. Yay for
-   * inconsistency.
+   * Test calling getTree with contact subtype data when subtype is not active.
    */
   public function testGetTreeDisabledContactSubType() {
+    $groupName = 'SubTypeCustomGroup';
+    $fieldName = 'SubTypeCustomField';
+
     // Set up contact type Foo.
     $this->callAPISuccess('ContactType', 'create', array('name' => 'Foo', 'label' => 'foo', 'parent_id' => 'Individual'));
 
     // Add custom group & fields on Foo.
     $customGroupParams = array(
-      'name' => 'foo_fields',
-      'title' => 'Foo Fields',
+      'name' => $groupName,
+      'title' => $groupName,
       'extends' => 'Individual',
       'extends_entity_column_value' => array('foo')
     );
     $customGroup = $this->customGroupCreate($customGroupParams);
-    $customField = $this->customFieldCreate(array('custom_group_id' => $customGroup['id']));
+    $customField = $this->customFieldCreate(array(
+      'name' => $fieldName,
+      'title' => $fieldName,
+      'custom_group_id' => $customGroup['id'],
+    ));
 
     // Retrieve Foo contact type.
     $contactType = $this->callAPISuccess('ContactType', 'get', array('name' => 'Foo'));
     $params = reset($contactType['values']);
+    $contactTypeId = $params['id'];
 
     // Disable Foo contact type.
     $params['is_active'] = 0;
@@ -134,7 +168,11 @@ class CRM_Core_BAO_CustomGroupTest extends CiviUnitTestCase {
     $result = CRM_Core_BAO_CustomGroup::getTree('Individual', NULL, NULL, NULL, array('Foo'));
     $this->assertEquals('Custom Field', $result[$customGroup['id']]['fields'][$customField['id']]['label']);
 
+    // Remove custom group.
     $this->customGroupDelete($customGroup['id']);
+
+    // Remove contact type Foo.
+    $this->callAPISuccess('ContactType', 'delete', array('id' => $contactTypeId));
   }
 
   /**
