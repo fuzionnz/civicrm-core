@@ -166,7 +166,7 @@ class CRM_Core_BAO_CustomGroupTest extends CiviUnitTestCase {
     $this->callAPISuccess('ContactType', 'create', $params);
 
     $result = CRM_Core_BAO_CustomGroup::getTree('Individual', NULL, NULL, NULL, array('Foo'));
-    $this->assertEquals('Custom Field', $result[$customGroup['id']]['fields'][$customField['id']]['label']);
+    $this->assertFalse($result, 'Ensure custom group tree for Individual false.');
 
     // Remove custom group.
     $this->customGroupDelete($customGroup['id']);
@@ -176,23 +176,23 @@ class CRM_Core_BAO_CustomGroupTest extends CiviUnitTestCase {
   }
 
   /**
-   * Test retrieve() with Empty Params.
+   * Test retrieve() with empty params.
    */
   public function testRetrieveEmptyParams() {
     $params = array();
     $defaults = array();
     $customGroup = CRM_Core_BAO_CustomGroup::retrieve($params, $defaults);
-    $this->assertNull($customGroup, 'Check that no custom Group is retrieved');
+    $this->assertNull($customGroup, 'Check that no custom Group is retrieved with empty params.');
   }
 
   /**
-   * Test retrieve() with Inalid Params
+   * Test retrieve() with invalid params.
    */
   public function testRetrieveInvalidParams() {
     $params = array('id' => 99);
     $defaults = array();
     $customGroup = CRM_Core_BAO_CustomGroup::retrieve($params, $defaults);
-    $this->assertNull($customGroup, 'Check that no custom Group is retreived');
+    $this->assertNull($customGroup, 'Check that no custom Group is retrieved with invalid params.');
   }
 
   /**
@@ -263,21 +263,21 @@ class CRM_Core_BAO_CustomGroupTest extends CiviUnitTestCase {
   }
 
   /**
-   * Test getGroupDetail() with Empty Params
+   * Test getGroupDetail() with empty params.
    */
   public function testGetGroupDetailEmptyParams() {
     $customGroupId = array();
     $customGroup = CRM_Core_BAO_CustomGroup::getGroupDetail($customGroupId);
-    $this->assertTrue(empty($customGroup), 'Check that no custom Group  details is retreived');
+    $this->assertTrue(empty($customGroup), 'Check that empty params does not return custom group details.');
   }
 
   /**
-   * Test getGroupDetail() with Inalid Params
+   * Test getGroupDetail() with invalid params.
    */
   public function testGetGroupDetailInvalidParams() {
     $customGroupId = 99;
     $customGroup = CRM_Core_BAO_CustomGroup::getGroupDetail($customGroupId);
-    $this->assertTrue(empty($customGroup), 'Check that no custom Group  details is retreived');
+    $this->assertTrue(empty($customGroup), 'Check that invalid params does not return custom group details.');
   }
 
   /**
@@ -511,12 +511,12 @@ class CRM_Core_BAO_CustomGroupTest extends CiviUnitTestCase {
   }
 
   /**
-   * Test getActiveGroups() with Invalid Params()
+   * Test getActiveGroups() with invalid params.
    */
   public function testGetActiveGroupsWithInvalidParams() {
     $contactId = Contact::createIndividual();
     $activeGroups = CRM_Core_BAO_CustomGroup::getActiveGroups('ABC', 'civicrm/contact/view/cd', $contactId);
-    $this->assertEquals(empty($activeGroups), TRUE, 'Check that Emprt params are retreived');
+    $this->assertEquals(empty($activeGroups), TRUE, 'Check that custom group with invalid params is not retrieved');
   }
 
   public function testGetActiveGroups() {

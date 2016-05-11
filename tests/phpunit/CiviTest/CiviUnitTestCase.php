@@ -2037,7 +2037,7 @@ class CiviUnitTestCase extends PHPUnit_Extensions_Database_TestCase {
    * @param array $params
    * @return array|int
    */
-  public function CustomGroupCreateByParams($params = array()) {
+  public function customGroupCreateByParams($params = array()) {
     $defaults = array(
       'title' => "API Custom Group",
       'extends' => 'Contact',
@@ -2054,7 +2054,7 @@ class CiviUnitTestCase extends PHPUnit_Extensions_Database_TestCase {
    * @param array $params
    * @return array|int
    */
-  public function CustomGroupMultipleCreateByParams($params = array()) {
+  public function customGroupMultipleCreateByParams($params = array()) {
     $defaults = array(
       'style' => 'Tab',
       'is_multiple' => 1,
@@ -2068,7 +2068,7 @@ class CiviUnitTestCase extends PHPUnit_Extensions_Database_TestCase {
    * @param array $params
    * @return array
    */
-  public function CustomGroupMultipleCreateWithFields($params = array()) {
+  public function customGroupMultipleCreateWithFields($params = array()) {
     // also need to pass on $params['custom_field'] if not set but not in place yet
     $ids = array();
     $customGroup = $this->CustomGroupMultipleCreateByParams($params);
@@ -2165,7 +2165,6 @@ class CiviUnitTestCase extends PHPUnit_Extensions_Database_TestCase {
    * @return array|int
    */
   public function customFieldDelete($customFieldID) {
-
     $params['id'] = $customFieldID;
     return $this->callAPISuccess('custom_field', 'delete', $params);
   }
