@@ -171,7 +171,7 @@ class CRM_Core_BAO_EntityTag extends CRM_Core_DAO_EntityTag {
     $object = array($entityIdsAdded, $entityTable);
     CRM_Utils_Hook::post('create', 'EntityTag', $tagId, $object);
 
-    CRM_Contact_BAO_GroupContactCache::opportunisticCacheRefresh();
+    CRM_Contact_BAO_GroupContactCache::opportunisticCacheFlush();
 
     return array(count($entityIds), $numEntitiesAdded, $numEntitiesNotAdded);
   }
@@ -245,7 +245,7 @@ class CRM_Core_BAO_EntityTag extends CRM_Core_DAO_EntityTag {
     $object = array($entityIdsRemoved, $entityTable);
     CRM_Utils_Hook::post('delete', 'EntityTag', $tagId, $object);
 
-    CRM_Contact_BAO_GroupContactCache::opportunisticCacheRefresh();
+    CRM_Contact_BAO_GroupContactCache::opportunisticCacheFlush();
 
     return array(count($entityIds), $numEntitiesRemoved, $numEntitiesNotRemoved);
   }

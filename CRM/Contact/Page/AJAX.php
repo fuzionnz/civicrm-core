@@ -314,7 +314,7 @@ class CRM_Contact_Page_AJAX {
       echo CRM_Contact_BAO_Contact::getCountComponent('custom_' . $customGroupID, $contactId);
     }
 
-    CRM_Contact_BAO_GroupContactCache::opportunisticCacheRefresh();
+    CRM_Contact_BAO_GroupContactCache::opportunisticCacheFlush();
     CRM_Utils_System::civiExit();
   }
 
