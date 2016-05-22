@@ -296,6 +296,23 @@ return array(
     'description' => NULL,
     'help_text' => NULL,
   ),
+  'smart_group_cache_refresh_mode' => array(
+    'group_name' => 'CiviCRM Preferences',
+    'group' => 'core',
+    'name' => 'smart_group_cache_refresh_mode',
+    'type' => 'String',
+    'html_type' => 'radio',
+    'default' => 'opportunistic',
+    'add' => '4.7',
+    'title' => 'Smart Group Refresh Mode',
+    'is_domain' => 1,
+    'is_contact' => 0,
+    'pseudoconstant' => array(
+      'optionGroupName' => 'smart_group_cache_refresh_mode',
+    ),
+    'description' => 'Should the smart groups be by cron jobs or user actions',
+    'help_text' => 'If you are not in a position to configure the cron you should leave this at the default. If you are then clearing caches via cron will improve the user experience.',
+  ),
   'max_attachments' => array(
     'group_name' => 'CiviCRM Preferences',
     'group' => 'core',
