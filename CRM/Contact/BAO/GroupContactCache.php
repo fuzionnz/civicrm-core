@@ -486,7 +486,7 @@ WHERE  id = %1
     if (Civi::$statics[__CLASS__]['is_refresh_init']) {
       throw new CRM_Core_Exception('A refresh has already run in this process');
     }
-    $lock = Civi::lockManager()->acquire('data.core.group.refresh');
+    $lock = Civi\Core\Container::singleton()->get('lockManager')->acquire('data.core.group.refresh');
     if ($lock->isAcquired()) {
       Civi::$statics[__CLASS__]['is_refresh_init'] = TRUE;
       return $lock;
@@ -501,7 +501,9 @@ WHERE  id = %1
    * to a poor man's cron. The user session will be forced to wait on this so it is less desirable.
    */
   public static function opportunisticCacheFlush() {
-    if (Civi::settings()->get('smart_group_cache_refresh_mode') == 'opportunistic') {
+    $settings = civicrm_api3('setting', 'get', array('name' => 'smart_group_cache_refresh_mode'));
+    $domainSettings = reset($settings['values']);
+    if (!isset($domainSettings['smart_group_cache_refresh_mode']) || $domainSettings['smart_group_cache_refresh_mode'] == 'opportunistic') {
       self::flushCaches();
     }
   }
