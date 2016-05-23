@@ -353,6 +353,10 @@ class CRM_Core_BAO_CustomGroup extends CRM_Core_DAO_CustomGroup {
         if (stristr($subTypes, ',')) {
           $subTypes = explode(',', $subTypes);
         }
+        // CRM-18654 Custom field error on CiviVolunteer activity type from getTree updates
+        elseif (!trim($subTypes, CRM_Core_DAO::VALUE_SEPARATOR)) {
+          $subTypes = array();
+        }
         else {
           $subTypes = explode(CRM_Core_DAO::VALUE_SEPARATOR, trim($subTypes, CRM_Core_DAO::VALUE_SEPARATOR));
         }
