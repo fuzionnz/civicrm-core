@@ -37,7 +37,6 @@
  * @param array $params
  *
  * @return array
- *   API result array
  */
 function civicrm_api3_acl_create($params) {
   return _civicrm_api3_basic_create(_civicrm_api3_get_BAO(__FUNCTION__), $params);
@@ -49,7 +48,7 @@ function civicrm_api3_acl_create($params) {
  * @param array $params
  *
  * @return array
- *   API result array
+ *   Array of retrieved Acl property values.
  */
 function civicrm_api3_acl_get($params) {
   return _civicrm_api3_basic_get(_civicrm_api3_get_BAO(__FUNCTION__), $params);
@@ -61,7 +60,7 @@ function civicrm_api3_acl_get($params) {
  * @param array $params
  *
  * @return array
- *   API result array
+ *   Array of deleted values.
  */
 function civicrm_api3_acl_delete($params) {
   return _civicrm_api3_basic_delete(_civicrm_api3_get_BAO(__FUNCTION__), $params);
