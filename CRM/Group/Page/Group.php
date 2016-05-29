@@ -144,7 +144,7 @@ class CRM_Group_Page_Group extends CRM_Core_Page_Basic {
       CRM_Contact_BAO_GroupContactCache::loadAll();
     }
     else {
-      CRM_Contact_BAO_GroupContactCache::fillIfEmpty();
+      CRM_Core_Session::setStatus(ts('Count data for smart groups is not currently calculated. You may click Update Smart Groups to generate it. Be aware this can cause significant server load'));
     }
 
     $this->search();
