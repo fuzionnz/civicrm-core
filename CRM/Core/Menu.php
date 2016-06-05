@@ -242,12 +242,11 @@ class CRM_Core_Menu {
   }
 
   /**
-   * We use this function to.
-   *
-   * 1. Compute the breadcrumb
-   * 2. Compute local tasks value if any
-   * 3. Propagate access argument, access callback, page callback to the menu item
-   * 4. Build the global navigation block
+   * We use this function to:
+   * - Compute the breadcrumb.
+   * - Compute local tasks value (if any).
+   * - Propagate access argument, access callback, page callback to menu item.
+   * - Build the global navigation block.
    *
    * @param array $menu
    */
@@ -258,7 +257,7 @@ class CRM_Core_Menu {
       self::fillComponentIds($menu, $path);
       self::buildReturnUrl($menu, $path);
 
-      // add add page_type if not present
+      // Add page_type if not present.
       if (!isset($menu[$path]['page_type'])) {
         $menu[$path]['page_type'] = 0;
       }
