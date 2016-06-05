@@ -59,9 +59,9 @@ class CRM_Utils_Check_Component_Security extends CRM_Utils_Check_Component {
    * The debug log may be jam-packed with sensitive data, we don't
    * want that.
    *
-   * Being able to be retrieved directly doesn't mean the logfile
-   * is browseable or visible to search engines; it means it can be
-   * requested directly.
+   * Being able to be retrieved directly does not mean the logfile
+   * can be browsed or is visible to search engines; it means it
+   * can be requested directly.
    *
    * @return array
    *   Array of messages
