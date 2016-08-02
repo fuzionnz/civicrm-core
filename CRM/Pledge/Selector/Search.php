@@ -290,7 +290,9 @@ class CRM_Pledge_Selector_Search extends CRM_Core_Selector_Base {
     $rows = array();
 
     // get all pledge status
-    $pledgeStatuses = CRM_Pledge_BAO_Pledge::buildOptions('status_id');
+    $pledgeStatuses = CRM_Core_OptionGroup::values('contribution_status',
+      FALSE, FALSE, FALSE, NULL, 'name', FALSE
+    );
 
     // get all campaigns.
     $allCampaigns = CRM_Campaign_BAO_Campaign::getCampaigns(NULL, NULL, FALSE, FALSE, FALSE, TRUE);
