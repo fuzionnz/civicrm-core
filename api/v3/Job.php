@@ -358,7 +358,7 @@ function civicrm_api3_job_fetch_bounces($params) {
   if (!$lock->isAcquired()) {
     return civicrm_api3_create_error('Could not acquire lock, another EmailProcessor process is running');
   }
-  if (!CRM_Utils_Mail_EmailProcessor::processBounces()) {
+  if (!CRM_Utils_Mail_EmailProcessor::processBounces($params['is_create_activities'])) {
     $lock->release();
     return civicrm_api3_create_error('Process Bounces failed');
   }
@@ -367,6 +367,19 @@ function civicrm_api3_job_fetch_bounces($params) {
   // FIXME: processBounces doesn't return true/false on success/failure
   $values = array();
   return civicrm_api3_create_success($values, $params, 'Job', 'fetch_bounces');
+}
+
+/**
+ * Metadata for bounce function.
+ *
+ * @param array $params
+ */
+function _civicrm_api3_job_fetch_bounces_spec(&$params) {
+  $params['is_create_activities'] = array(
+    'api.default' => 0,
+    'type' => CRM_Utils_Type::T_BOOLEAN,
+    'title' => ts('Create activities for replies?'),
+  );
 }
 
 /**

@@ -48,14 +48,14 @@ class CRM_Utils_Mail_EmailProcessor {
    *   Always returns true (for the api). at a later stage we should
    *   fix this to return true on success / false on failure etc.
    */
-  public static function processBounces() {
+  public static function processBounces($is_create_activities) {
     $dao = new CRM_Core_DAO_MailSettings();
     $dao->domain_id = CRM_Core_Config::domainID();
     $dao->is_default = TRUE;
     $dao->find();
 
     while ($dao->fetch()) {
-      self::_process(TRUE, $dao);
+      self::_process(TRUE, $dao, $is_create_activities);
     }
 
     // always returns true, i.e. never fails :)
@@ -102,7 +102,7 @@ class CRM_Utils_Mail_EmailProcessor {
     $found = FALSE;
     while ($dao->fetch()) {
       $found = TRUE;
-      self::_process(FALSE, $dao);
+      self::_process(FALSE, $dao, $is_create_activities);
     }
     if (!$found) {
       CRM_Core_Error::fatal(ts('No mailboxes have been configured for Email to Activity Processing'));
@@ -128,10 +128,12 @@ class CRM_Utils_Mail_EmailProcessor {
   /**
    * @param $civiMail
    * @param CRM_Core_DAO $dao
+   * @param bool $is_create_activities
+   *   Create activities.
    *
    * @throws Exception
    */
-  public static function _process($civiMail, $dao) {
+  public static function _process($civiMail, $dao, $is_create_activities) {
     // 0 = activities; 1 = bounce;
     $usedfor = $dao->is_default;
 
@@ -236,7 +238,7 @@ class CRM_Utils_Mail_EmailProcessor {
         }
 
         // preseve backward compatibility
-        if ($usedfor == 0 || !$civiMail) {
+        if ($usedfor == 0 || $is_create_activities) {
           // if its the activities that needs to be processed ..
           try {
             $mailParams = CRM_Utils_Mail_Incoming::parseMailingObject($mail);
