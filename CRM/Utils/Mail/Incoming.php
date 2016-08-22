@@ -354,22 +354,32 @@ class CRM_Utils_Mail_Incoming {
       $date = date('YmdHis');
       $config = CRM_Core_Config::singleton();
       for ($i = 0; $i < count($attachments); $i++) {
+        $mimeType = "{$attachments[$i]['contentType']}/{$attachments[$i]['mimeType']}";
+
         $attachNum = $i + 1;
         $fileName = basename($attachments[$i]['fullName']);
         $newName = CRM_Utils_File::makeFileName($fileName);
         $location = $config->uploadDir . $newName;
+        $old_location = $attachments[$i]['fullName'];
 
-        // move file to the civicrm upload directory
-        rename($attachments[$i]['fullName'], $location);
-
-        $mimeType = "{$attachments[$i]['contentType']}/{$attachments[$i]['mimeType']}";
-
-        $params["attachFile_$attachNum"] = array(
-          'uri' => $fileName,
-          'type' => $mimeType,
-          'upload_date' => $date,
-          'location' => $location,
-        );
+        // Move file to the civicrm upload directory.
+        if (rename($old_location, $location)) {
+          // This may fail for various reasons, including that the attachment
+          // has already been moved.
+          $params["attachFile_$attachNum"] = array(
+            'uri' => $fileName,
+            'type' => $mimeType,
+            'upload_date' => $date,
+            'location' => $location,
+          );
+        }
+        else {
+          $ts_args = array(
+            '%1' => $old_location,
+            '%2' => $location,
+          );
+          CRM_Core_Error::debug_log_message(ts('Unable to rename uploaded file from %1 to %2.', $ts_args));
+        }
       }
     }
 

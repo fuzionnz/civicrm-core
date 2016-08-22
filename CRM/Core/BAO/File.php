@@ -115,8 +115,22 @@ class CRM_Core_BAO_File extends CRM_Core_DAO_File {
 
     CRM_Utils_File::createDir($directoryName);
 
+    if (!file_exists($data)) {
+      // This can indicate the file failed to upload, but it can also
+      // happen if a civicrm_api('Activity', 'create') occurs on a
+      // freshly created activity.
+      CRM_Core_Error::debug_log_message(ts('filePostProcess: File does not exist: %1.', array('%1' => $data)));
+      return;
+    }
+
+    if (!file_exists($directoryName)) {
+      CRM_Core_Error::debug_log_message(ts('Unable to access custom upload directory at %1', array('%1' => $data)));
+      return;
+    }
+
     if (!rename($data, $directoryName . DIRECTORY_SEPARATOR . $filename)) {
-      CRM_Core_Error::fatal(ts('Could not move custom file to custom upload directory'));
+      CRM_Core_Error::debug_log_message(ts('Could not move custom file to custom upload directory'));
+      return;
     }
 
     // to get id's
