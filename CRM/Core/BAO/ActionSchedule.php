@@ -1300,7 +1300,7 @@ INSERT INTO civicrm_action_log ({$selectColumns})
  AND reminder.id IS NOT NULL
  AND reminder.reference_date IS NOT NULL
  AND reminder.reference_date <> $dateField
- AND already_sent.entity_id IS NULL
+ AND already_sent.entity_table IS NULL
  GROUP BY e.id
 ";
       }
