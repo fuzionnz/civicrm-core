@@ -29,8 +29,6 @@
  *
  * @package CRM
  * @copyright CiviCRM LLC (c) 2004-2015
- * $Id$
- *
  */
 
 /**
@@ -1220,10 +1218,10 @@ WHERE      $group.id = {$actionSchedule->group_id}
       $select[] = 'e.id as entity_id';
       $select[] = "'{$mapping->entity}' as entity_table";
       $select[] = "{$actionSchedule->id} as action_schedule_id";
-      $reminderJoinClause = "civicrm_action_log reminder ON reminder.contact_id = {$contactField} AND
-reminder.entity_id          = e.id AND
-reminder.entity_table       = '{$mapping->entity}' AND
-reminder.action_schedule_id = %1";
+      $reminderJoinClause = "civicrm_action_log reminder ON reminder.contact_id = {$contactField}
+      AND reminder.entity_id = e.id
+      AND reminder.entity_table  = '{$mapping->entity}'
+      AND reminder.action_schedule_id = %1";
 
       if ($anniversary) {
         // only consider reminders less than 11 months ago
