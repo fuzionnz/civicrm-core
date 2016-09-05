@@ -1278,8 +1278,9 @@ LEFT JOIN {$reminderJoinClause}
       // criteria  for some schedule reminder so in order to send new reminder we INSERT new reminder with new reference_date
       // value via UNION operation
       // We need to add in reminders that
-      // have not already had a reminder for the current end date and HAVE had a reminder for a prior end date for the same reminder.
-      // These will have been excluded earlier.
+      // have not already had a reminder for the current end date and HAVE had a reminder for a different
+      // end date for the same reminder. These will have been excluded earlier, on the basis of a reminder having gone out
+      // so we want to selectively re-add them.
       if (strpos($selectColumns, 'reference_date') !== FALSE) {
         $referenceQuery = "
 INSERT INTO civicrm_action_log ({$selectColumns})
