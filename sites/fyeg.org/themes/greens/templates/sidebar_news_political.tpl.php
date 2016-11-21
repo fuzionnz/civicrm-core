@@ -46,7 +46,7 @@
 										<div class="span12">
 											<div class="text">
 												<h4><a href="<?php echo $news_url?>"><?php print check_plain($node->title);?></a></h4>
-												<span><?php echo $news_author?><?php echo $news_date?>
+												<span><?php /*echo $news_author */?><?php echo $news_date?>
 												</span>
 												<p><?php echo $news_excerpt?></p>
 											</div>

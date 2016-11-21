@@ -143,7 +143,7 @@
 				 	$entities = $query->entityCondition('entity_type', 'node')
 				 	->entityCondition('bundle', $content_type)
 				 	->propertyCondition('status', 1) // Published
-				 	->propertyOrderBy('created', 'DESC')
+				 	->propertyOrderBy('title', 'ASC')
 				 	->execute();
 				 }	
 				
