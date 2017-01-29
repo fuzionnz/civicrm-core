@@ -2641,7 +2641,12 @@ class CRM_Contact_BAO_Query {
           continue;
 
         case 'civicrm_email':
-          $from .= " $side JOIN civicrm_email ON (contact_a.id = civicrm_email.contact_id AND civicrm_email.is_primary = 1) ";
+          if (Civi::settings()->get('searchPrimaryDetailsOnly')) {
+            $from .= " $side JOIN civicrm_email ON (contact_a.id = civicrm_email.contact_id AND civicrm_email.is_primary = 1) ";
+          }
+          else {
+            $from .= " $side JOIN civicrm_email ON (contact_a.id = civicrm_email.contact_id) ";
+          }
           continue;
 
         case 'civicrm_im':
@@ -3429,7 +3434,9 @@ WHERE  $smartGroupClause
         $name = 'id';
       }
 
-      $this->_where[$grouping][] = self::buildClause('civicrm_email.is_primary', '=', 1, 'Integer');
+      if (Civi::settings()->get('searchPrimaryDetailsOnly')) {
+        $this->_where[$grouping][] = self::buildClause('civicrm_email.is_primary', '=', 1, 'Integer');
+      }
       $this->_where[$grouping][] = self::buildClause("civicrm_email.$name", $op, $value, $dataType);
       return;
     }

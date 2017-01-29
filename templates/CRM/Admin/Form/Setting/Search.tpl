@@ -52,6 +52,11 @@
             <td>{$form.includeOrderByClause.html}<br />
                 <span class="description">{ts}If disabled, the search results will not be ordered. This will improve response time on search results on large datasets significantly.{/ts}</span></td>
         </tr>
+        <tr class="crm-search-setting-form-block-searchPrimaryDetailsOnly">
+            <td class="label">{$form.searchPrimaryDetailsOnly.label}</td>
+            <td>{$form.searchPrimaryDetailsOnly.html}<br />
+                <span class="description">{ts}Contact search can check for matches either on any details for a contact, or for matches only on the primary detail for each contact.{/ts}</span></td>
+        </tr>
         <tr class="crm-search-setting-form-block-defaultSearchProfileID">
             <td class="label">{$form.defaultSearchProfileID.label}</td>
             <td>{$form.defaultSearchProfileID.html}<br />
