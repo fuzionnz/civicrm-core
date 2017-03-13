@@ -284,16 +284,21 @@ class CRM_Contribute_Form_Contribution_ThankYou extends CRM_Contribute_Form_Cont
     }
 
     // A payment notification update could have come in at any time. Check at the last minute.
-    $contributionStatusID = civicrm_api3('Contribution', 'getvalue', array('id' => $params['contributionID'], 'return' => 'contribution_status_id'));
-    if (CRM_Core_PseudoConstant::getName('CRM_Contribute_BAO_Contribution', 'contribution_status_id', $contributionStatusID) === 'Pending'
-      && !empty($params['payment_processor_id'])
-    ) {
-      $isPendingOutcome = TRUE;
+    if ($params['contributionID']) {
+      $contributionStatusID = civicrm_api3('Contribution', 'getvalue', array(
+        'id' => $params['contributionID'],
+        'return' => 'contribution_status_id'
+      ));
+      if (CRM_Core_PseudoConstant::getName('CRM_Contribute_BAO_Contribution', 'contribution_status_id', $contributionStatusID) === 'Pending'
+        && !empty($params['payment_processor_id'])
+      ) {
+        $isPendingOutcome = TRUE;
+      }
+      else {
+        $isPendingOutcome = FALSE;
+      }
+      $this->assign('isPendingOutcome', $isPendingOutcome);
     }
-    else {
-      $isPendingOutcome = FALSE;
-    }
-    $this->assign('isPendingOutcome', $isPendingOutcome);
 
     $this->freeze();
 
