@@ -57,6 +57,26 @@ class CRM_Contribute_Form_Contribution_Main extends CRM_Contribute_Form_Contribu
   protected $_snippet;
 
   /**
+   * Get the help text to go with the recurring form.
+   *
+   * @param bool $isRecurInstallments
+   * @param bool $is_email_receipt
+   *
+   * @return string
+   */
+  protected static function getRecurringHelpText($isRecurInstallments, $is_email_receipt) {
+    $recurringHelpText = ts('Your recurring contribution will be processed automatically.');
+    if ($isRecurInstallments) {
+      $recurringHelpText .= ts(' You can specify the number of installments, or you can leave the number of installments blank if you want to make an open-ended commitment. In either case, you can choose to cancel at any time.');
+    }
+    if ($is_email_receipt) {
+      $recurringHelpText .= ts(' You will receive an email receipt for each recurring contribution.');
+      return $recurringHelpText;
+    }
+    return $recurringHelpText;
+  }
+
+  /**
    * Set variables up before form is built.
    */
   public function preProcess() {
@@ -566,6 +586,11 @@ class CRM_Contribute_Form_Contribution_Main extends CRM_Contribute_Form_Contribu
 
     $form->assign('is_recur_interval', CRM_Utils_Array::value('is_recur_interval', $form->_values));
     $form->assign('is_recur_installments', CRM_Utils_Array::value('is_recur_installments', $form->_values));
+
+    $form->assign('recurringHelpText', self::getRecurringHelpText(
+      !empty($form->_values['is_recur_installments']),
+      !empty($form->_values['is_email_receipt'])
+    ));
 
     $form->add('checkbox', 'is_recur', ts('I want to contribute this amount'), NULL);
 
