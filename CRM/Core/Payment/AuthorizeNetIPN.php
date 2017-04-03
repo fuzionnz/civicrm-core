@@ -114,7 +114,7 @@ class CRM_Core_Payment_AuthorizeNetIPN extends CRM_Core_Payment_BaseIPN {
     if ($objects['contribution']->total_amount != $input['amount']) {
       CRM_Core_Error::debug_log_message("Subscription amount mismatch.");
       echo "Failure: Subscription amount mismatch<p>";
-      return FALSE;
+      //return FALSE;
     }
 
     $contributionStatus = CRM_Contribute_PseudoConstant::contributionStatus(NULL, 'name');
@@ -139,7 +139,7 @@ class CRM_Core_Payment_AuthorizeNetIPN extends CRM_Core_Payment_BaseIPN {
       $contribution->financial_type_id = $objects['contributionType']->id;
       $contribution->contribution_page_id = $ids['contributionPage'];
       $contribution->contribution_recur_id = $ids['contributionRecur'];
-      $contribution->receive_date = $now;
+      $contribution->receive_date = $input['receive_date'];
       $contribution->currency = $objects['contribution']->currency;
       $contribution->payment_instrument_id = $objects['contribution']->payment_instrument_id;
       $contribution->amount_level = $objects['contribution']->amount_level;
@@ -219,6 +219,7 @@ class CRM_Core_Payment_AuthorizeNetIPN extends CRM_Core_Payment_BaseIPN {
     $input['response_reason_text'] = $this->retrieve('x_response_reason_text', 'String', FALSE);
     $input['subscription_paynum'] = $this->retrieve('x_subscription_paynum', 'Integer', FALSE, 0);
     $input['trxn_id'] = $this->retrieve('x_trans_id', 'String', FALSE);
+    $input['receive_date'] = $this->retrieve('receive_date', 'String', FALSE, 'now');
 
     if ($input['trxn_id']) {
       $input['is_test'] = 0;
@@ -255,15 +256,14 @@ class CRM_Core_Payment_AuthorizeNetIPN extends CRM_Core_Payment_BaseIPN {
    */
   public function getIDs(&$ids, &$input) {
     $ids['contact'] = $this->retrieve('x_cust_id', 'Integer', FALSE, 0);
-    $ids['contribution'] = $this->retrieve('x_invoice_num', 'Integer');
+    $ids['contribution'] = $this->retrieve('x_invoice_num', 'Integer', FALSE);
 
     // joining with contribution table for extra checks
     $sql = "
     SELECT cr.id, cr.contact_id
       FROM civicrm_contribution_recur cr
 INNER JOIN civicrm_contribution co ON co.contribution_recur_id = cr.id
-     WHERE cr.processor_id = '{$input['subscription_id']}' AND
-           (cr.contact_id = {$ids['contact']} OR co.id = {$ids['contribution']})
+     WHERE cr.processor_id = '{$input['subscription_id']}'
      LIMIT 1";
     $contRecur = CRM_Core_DAO::executeQuery($sql);
     $contRecur->fetch();
@@ -278,6 +278,13 @@ INNER JOIN civicrm_contribution co ON co.contribution_recur_id = cr.id
       $log = new CRM_Utils_SystemLogger();
       $log->error('payment_notification', array('message' => $message, 'ids' => $ids, 'input' => $input));
       throw new CRM_Core_Exception($message);
+    }
+    if (empty($ids['contribution'])) {
+      $ids['contribution'] = CRM_Core_DAO::singleValueQuery('
+        SELECT id FROM civicrm_contribution
+        WHERE contribution_recur_id = ' . (int) $ids['contributionRecur'] . '
+        AND contribution_status_id NOT IN (3,4)
+        LIMIT 1');
     }
 
     // get page id based on contribution id
