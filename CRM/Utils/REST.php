@@ -546,14 +546,10 @@ class CRM_Utils_REST {
       );
       CRM_Utils_JSON::output($error);
     }
-    // FIXME: Shouldn't the X-Forwarded-Proto check be part of CRM_Utils_System::isSSL()?
-    if (Civi::settings()->get('enableSSL') &&
-      !CRM_Utils_System::isSSL() &&
-      strtolower(CRM_Utils_Array::value('X_FORWARDED_PROTO', CRM_Utils_System::getRequestHeaders())) != 'https'
-    ) {
-      CRM_Utils_System::loadBootStrap(array(), FALSE, FALSE);
-      CRM_Utils_System::redirectToSSL();
-    }
+
+    CRM_Utils_System::loadBootStrap(array(), FALSE, FALSE);
+    CRM_Utils_System::redirectToSSL();
+
     if (empty($requestParams['entity'])) {
       CRM_Utils_JSON::output(civicrm_api3_create_error('missing entity param'));
     }
@@ -618,14 +614,8 @@ class CRM_Utils_REST {
       CRM_Utils_JSON::output($error);
     }
 
-    // FIXME: Shouldn't the X-Forwarded-Proto check be part of CRM_Utils_System::isSSL()?
-    if (Civi::settings()->get('enableSSL') &&
-      !CRM_Utils_System::isSSL() &&
-      strtolower(CRM_Utils_Array::value('X_FORWARDED_PROTO', CRM_Utils_System::getRequestHeaders())) != 'https'
-    ) {
-      CRM_Utils_System::loadBootStrap(array(), FALSE, FALSE);
-      CRM_Utils_System::redirectToSSL();
-    }
+    CRM_Utils_System::loadBootStrap(array(), FALSE, FALSE);
+    CRM_Utils_System::redirectToSSL();
 
     $q = CRM_Utils_Array::value('fnName', $requestParams);
     if (!$q) {
@@ -693,7 +683,6 @@ class CRM_Utils_REST {
     // Proceed with bootstrap for "?q=civicrm/X/Y" but not "?q=civicrm/ping"
     if (!empty($q)) {
       if (count($args) == 2 && $args[1] == 'ping') {
-        CRM_Utils_System::loadBootStrap(array(), FALSE, FALSE);
         return NULL; // this is pretty wonky but maybe there's some reason I can't see
       }
       if (count($args) != 3) {
@@ -702,38 +691,30 @@ class CRM_Utils_REST {
       if ($args[0] != 'civicrm') {
         return self::error('ERROR: Malformed REST path');
       }
-      // Therefore we have reasonably well-formed "?q=civicrm/X/Y"
+      // Therefore we have reasonably well-formed "?q=civicrm/X/Y", or else
+      // we are using `rest.php` and have no q= parameter.
     }
 
-    // FIXME: Shouldn't the X-Forwarded-Proto check be part of CRM_Utils_System::isSSL()?
-    if (Civi::settings()->get('enableSSL') &&
-      !CRM_Utils_System::isSSL() &&
-      strtolower(CRM_Utils_Array::value('X_FORWARDED_PROTO', CRM_Utils_System::getRequestHeaders())) != 'https'
-    ) {
-      CRM_Utils_System::loadBootStrap(array(), FALSE, FALSE);
-      CRM_Utils_System::redirectToSSL();
-    }
+    // This should happen early, but must happen after the q= check
+    // above or we hit "malformed REST path".
+    CRM_Utils_System::loadBootStrap(array(), FALSE, FALSE);
+    CRM_Utils_System::redirectToSSL();
 
     if (!CRM_Utils_System::authenticateKey(FALSE)) {
       // FIXME: At time of writing, this doesn't actually do anything because
       // authenticateKey abends, but that's a bad behavior which sends a
       // malformed response.
-      CRM_Utils_System::loadBootStrap(array(), FALSE, FALSE);
       return self::error('Failed to authenticate key');
     }
 
-    $uid = NULL;
-    if (!$uid) {
-      $store = NULL;
-      $api_key = CRM_Utils_Request::retrieve('api_key', 'String', $store, FALSE, NULL, 'REQUEST');
-      if (empty($api_key)) {
-        CRM_Utils_System::loadBootStrap(array(), FALSE, FALSE);
-        return self::error("FATAL: mandatory param 'api_key' (user key) missing");
-      }
-      $contact_id = CRM_Core_DAO::getFieldValue('CRM_Contact_DAO_Contact', $api_key, 'id', 'api_key');
-      if ($contact_id) {
-        $uid = CRM_Core_BAO_UFMatch::getUFId($contact_id);
-      }
+    $store = NULL;
+    $api_key = CRM_Utils_Request::retrieve('api_key', 'String', $store, FALSE, NULL, 'REQUEST');
+    if (empty($api_key)) {
+      return self::error("FATAL: mandatory param 'api_key' (user key) missing");
+    }
+    $contact_id = CRM_Core_DAO::getFieldValue('CRM_Contact_DAO_Contact', $api_key, 'id', 'api_key');
+    if ($contact_id) {
+      $uid = CRM_Core_BAO_UFMatch::getUFId($contact_id);
     }
 
     if ($uid && $contact_id) {
@@ -747,7 +728,6 @@ class CRM_Utils_REST {
       return NULL;
     }
     else {
-      CRM_Utils_System::loadBootStrap(array(), FALSE, FALSE);
       return self::error('ERROR: No CMS user associated with given api-key');
     }
   }
