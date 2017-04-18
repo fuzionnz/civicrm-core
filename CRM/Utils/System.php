@@ -1169,32 +1169,48 @@ class CRM_Utils_System {
   /**
    * Determine whether this is an SSL request.
    *
-   * Note that we inline this function in install/civicrm.php, so if you change
-   * this function, please go and change the code in the install script as well.
+   * Per default, $_SERVER['HTTPS'] is a non-empty value if script was
+   * queried through HTTPS.
+   *
+   * But IIS+ISAPI sets this to 'off', and an SSL-terminating load
+   * balancer may not set this.
+   *
+   * @see http://php.net/manual/en/reserved.variables.server.php
+   *
+   * @see CRM_Utils_System::redirectToSSL()
+   *
+   * We inline this function in install/civicrm.php, so if you change
+   * this function, please go and change the code in the install
+   * script as well.
    */
   public static function isSSL() {
-    return
-      (isset($_SERVER['HTTPS']) &&
-        !empty($_SERVER['HTTPS']) &&
-        strtolower($_SERVER['HTTPS']) != 'off') ? TRUE : FALSE;
+    // If we get X_FORWARDED_PROTO=https, we are HTTP behind a
+    // load-balancer. (Or we are being lied to.)
+    if (strtolower(CRM_Utils_Array::value('X_FORWARDED_PROTO', CRM_Utils_System::getRequestHeaders())) == 'https') {
+      return true;
+    }
+    // If $_SERVER['HTTPS'] is non-empty, that suggests SSL.
+    if (!empty($_SERVER['HTTPS'])) {
+      // Except IIS+ISAPI.
+      if (strtolower($_SERVER['HTTPS']) != 'off') {
+        return true;
+      }
+    }
   }
 
   /**
    * Redirect to SSL.
    *
-   * @param bool|FALSE $abort
+   * @param bool $abort
    *
    * @throws \Exception
    */
   public static function redirectToSSL($abort = FALSE) {
     $config = CRM_Core_Config::singleton();
     $req_headers = self::getRequestHeaders();
-    // FIXME: Shouldn't the X-Forwarded-Proto check be part of CRM_Utils_System::isSSL()?
-    if (Civi::settings()->get('enableSSL') &&
-      !self::isSSL() &&
-      strtolower(CRM_Utils_Array::value('X_FORWARDED_PROTO', $req_headers)) != 'https'
-    ) {
-      // ensure that SSL is enabled on a civicrm url (for cookie reasons etc)
+
+    if (Civi::settings()->get('enableSSL') && !self::isSSL()) {
+      // Ensure that SSL is enabled on a civicrm url (for cookie reasons etc).
       $url = "https://{$_SERVER['HTTP_HOST']}{$_SERVER['REQUEST_URI']}";
       if (!self::checkURL($url, TRUE)) {
         if ($abort) {
