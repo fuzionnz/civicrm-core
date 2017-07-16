@@ -177,7 +177,7 @@ foreach ($langs as $locale => $_) {
   }
 }
 
-// Set the locale (required by CRM_Core_Config)
+// Set the CMS
 // This is mostly sympbolic, since nothing we do during the install
 // really requires CIVICRM_UF to be defined.
 $installTypeToUF = array(
@@ -189,6 +189,7 @@ $installTypeToUF = array(
 $uf = (isset($installTypeToUF[$installType]) ? $installTypeToUF[$installType] : 'Drupal');
 define('CIVICRM_UF', $uf);
 
+// Set the Locale (required by CRM_Core_Config)
 global $tsLocale;
 
 $tsLocale = 'en_US';
@@ -547,6 +548,32 @@ class InstallRequirements {
         );
       }
     }
+  }
+
+  /**
+   * Connect via mysqli.
+   *
+   * This is exactly the same as mysqli_connect(), except that it accepts
+   * the port as part of the `$host`.
+   *
+   * @param string $host
+   *   Ex: 'localhost', 'localhost:3307', '127.0.0.1:3307', '[::1]', '[::1]:3307'.
+   * @param string $username
+   * @param string $password
+   * @param string $database
+   * @return \mysqli
+   */
+  protected function connect($host, $username, $password, $database = '') {
+    $hostParts = explode(':', $host);
+    if (count($hostParts) > 1 && strrpos($host, ']') !== strlen($host) - 1) {
+      $port = array_pop($hostParts);
+      $host = implode(':', $hostParts);
+    }
+    else {
+      $port = NULL;
+    }
+    $conn = @mysqli_connect($host, $username, $password, $database, $port);
+    return $conn;
   }
 
   /**
@@ -949,7 +976,7 @@ class InstallRequirements {
    */
   public function requireMysqlConnection($server, $username, $password, $testDetails) {
     $this->testing($testDetails);
-    $this->conn = @mysqli_connect($server, $username, $password);
+    $this->conn = $this->connect($server, $username, $password);
 
     if ($this->conn) {
       return TRUE;
@@ -966,7 +993,7 @@ class InstallRequirements {
    */
   public function requireMySQLServer($server, $testDetails) {
     $this->testing($testDetails);
-    $conn = @mysqli_connect($server, NULL, NULL);
+    $conn = $this->connect($server, NULL, NULL);
 
     if ($conn || mysqli_connect_errno() < 2000) {
       return TRUE;
@@ -1011,7 +1038,7 @@ class InstallRequirements {
    */
   public function requireMySQLInnoDB($server, $username, $password, $database, $testDetails) {
     $this->testing($testDetails);
-    $conn = @mysqli_connect($server, $username, $password);
+    $conn = $this->connect($server, $username, $password);
     if (!$conn) {
       $testDetails[2] .= ' ' . ts("Could not determine if MySQL has InnoDB support. Assuming no.");
       $this->error($testDetails);
@@ -1046,7 +1073,7 @@ class InstallRequirements {
    */
   public function requireMySQLTempTables($server, $username, $password, $database, $testDetails) {
     $this->testing($testDetails);
-    $conn = @mysqli_connect($server, $username, $password);
+    $conn = $this->connect($server, $username, $password);
     if (!$conn) {
       $testDetails[2] = ts('Could not login to the database.');
       $this->error($testDetails);
@@ -1076,7 +1103,7 @@ class InstallRequirements {
    */
   public function requireMySQLTrigger($server, $username, $password, $database, $testDetails) {
     $this->testing($testDetails);
-    $conn = @mysqli_connect($server, $username, $password);
+    $conn = $this->connect($server, $username, $password);
     if (!$conn) {
       $testDetails[2] = ts('Could not login to the database.');
       $this->error($testDetails);
@@ -1116,7 +1143,7 @@ class InstallRequirements {
    */
   public function requireMySQLLockTables($server, $username, $password, $database, $testDetails) {
     $this->testing($testDetails);
-    $conn = @mysqli_connect($server, $username, $password);
+    $conn = $this->connect($server, $username, $password);
     if (!$conn) {
       $testDetails[2] = ts('Could not connect to the database server.');
       $this->error($testDetails);
@@ -1163,7 +1190,7 @@ class InstallRequirements {
    */
   public function requireMySQLAutoIncrementIncrementOne($server, $username, $password, $testDetails) {
     $this->testing($testDetails);
-    $conn = @mysqli_connect($server, $username, $password);
+    $conn = $this->connect($server, $username, $password);
     if (!$conn) {
       $testDetails[2] = ts('Could not connect to the database server.');
       $this->error($testDetails);
@@ -1197,7 +1224,7 @@ class InstallRequirements {
    */
   public function requireMySQLThreadStack($server, $username, $password, $database, $minValueKB, $testDetails) {
     $this->testing($testDetails);
-    $conn = @mysqli_connect($server, $username, $password);
+    $conn = $this->connect($server, $username, $password);
     if (!$conn) {
       $testDetails[2] = ts('Could not connect to the database server.');
       $this->error($testDetails);
@@ -1241,7 +1268,7 @@ class InstallRequirements {
     $onlyRequire = FALSE
   ) {
     $this->testing($testDetails);
-    $conn = @mysqli_connect($server, $username, $password);
+    $conn = $this->connect($server, $username, $password);
 
     $okay = NULL;
     if (@mysqli_select_db($conn, $database)) {
@@ -1380,7 +1407,7 @@ class Installer extends InstallRequirements {
    * @param $database
    */
   public function createDatabaseIfNotExists($server, $username, $password, $database) {
-    $conn = @mysqli_connect($server, $username, $password);
+    $conn = $this->connect($server, $username, $password);
 
     if (@mysqli_select_db($conn, $database)) {
       // skip if database already present
@@ -1487,6 +1514,13 @@ class Installer extends InstallRequirements {
         // now enable civicrm module.
         module_enable(array('civicrm', 'civicrmtheme'));
 
+        // SystemInstallEvent will be called from here with the first call of CRM_Core_Config,
+        // which calls Core_BAO_ConfigSetting::applyLocale(), who will default to calling
+        // Civi::settings()->get('lcMessages');
+        // Therefore, we need to pass the seedLanguage before that.
+        global $civicrm_setting;
+        $civicrm_setting['domain']['lcMessages'] = $config['seedLanguage'];
+
         // clear block, page, theme, and hook caches
         drupal_flush_all_caches();
 
@@ -1496,15 +1530,6 @@ class Installer extends InstallRequirements {
         // restore the user.
         $GLOBALS['user'] = $original_user;
         drupal_save_session(TRUE);
-
-        //change the default language to one chosen
-        if (isset($config['seedLanguage']) && $config['seedLanguage'] != 'en_US') {
-          civicrm_api3('Setting', 'create', array(
-              'domain_id' => 'current_domain',
-              'lcMessages' => $config['seedLanguage'],
-            )
-          );
-        }
 
         $output .= '</ul>';
         $output .= '</div>';

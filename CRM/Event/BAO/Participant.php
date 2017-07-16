@@ -2185,6 +2185,7 @@ WHERE (entity_table = 'civicrm_participant' AND entity_id = {$participantId} AND
         'from_financial_account_id' => NULL,
         'to_financial_account_id' => $toFinancialAccount,
         'total_amount' => $balanceAmt,
+        'net_amount' => $balanceAmt,
         'status_id' => $completedStatusId,
         'payment_instrument_id' => $updatedContribution->payment_instrument_id,
         'contribution_id' => $updatedContribution->id,
@@ -2208,8 +2209,7 @@ WHERE (entity_table = 'civicrm_participant' AND entity_id = {$participantId} AND
 
     $date = CRM_Utils_Date::currentDBDate();
     $event = CRM_Event_BAO_Event::getEvents(0, $eventId);
-    $eventTitle = $event[$eventId];
-    $subject = "Registration selections changed for $eventTitle";
+    $subject = sprintf("Registration selections changed for %s", CRM_Utils_Array::value($eventId, $event));
     $targetCid = $contactId;
     $srcRecId = $participantId;
 

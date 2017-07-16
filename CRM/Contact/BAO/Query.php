@@ -677,7 +677,6 @@ class CRM_Contact_BAO_Query {
         ($name == 'parent_id')
       ) {
         CRM_Activity_BAO_Query::select($this);
-        continue;
       }
 
       // if this is a hierarchical name, we ignore it
@@ -859,11 +858,11 @@ class CRM_Contact_BAO_Query {
                 // If we have an option group defined then rather than joining the option value table in
                 // (which is an unindexed join) we render the option value on output.
                 // @todo - extend this to other pseudoconstants.
-                if ($this->pseudoConstantNameIsInReturnProperties($field)) {
+                if ($this->pseudoConstantNameIsInReturnProperties($field, $name)) {
                   $pseudoFieldName = $field['pseudoconstant']['optionGroupName'];
                   $this->_pseudoConstantsSelect[$pseudoFieldName] = array(
                     'pseudoField' => $field['name'],
-                    'idCol' => $field['name'],
+                    'idCol' => $name,
                     'field_name' => $field['name'],
                     'bao' => $field['bao'],
                     'pseudoconstant' => $field['pseudoconstant'],
@@ -1972,6 +1971,8 @@ class CRM_Contact_BAO_Query {
       case 'relation_start_date_low':
       case 'relation_end_date_high':
       case 'relation_end_date_low':
+      case 'relation_active_period_date_high':
+      case 'relation_active_period_date_low':
       case 'relation_target_name':
       case 'relation_status':
       case 'relation_date_low':
@@ -4141,6 +4142,7 @@ civicrm_relationship.is_permission_a_b = 0
     }
 
     $this->addRelationshipDateClauses($grouping, $where);
+    $this->addRelationshipActivePeriodClauses($grouping, $where);
     if (!empty($relationType) && !empty($rType) && isset($rType->id)) {
       $where[$grouping][] = 'civicrm_relationship.relationship_type_id = ' . $rType->id;
     }
@@ -4202,6 +4204,64 @@ civicrm_relationship.is_permission_a_b = 0
         $where[$grouping][] = "civicrm_relationship.$dateField <= $date";
         $this->_qill[$grouping][] = ($dateField == 'end_date' ? ts('Relationship Ended on or Before') : ts('Relationship Recorded Start Date On or Before')) . " " . CRM_Utils_Date::customFormat($date);
       }
+    }
+  }
+
+  /**
+   * Add start & end active period criteria in
+   * @param string $grouping
+   * @param array $where
+   *   = array to add where clauses to, in case you are generating a temp table.
+   * not the main query.
+   */
+  public function addRelationshipActivePeriodClauses($grouping, &$where) {
+    $dateValues = array();
+    $dateField = 'active_period_date';
+
+    $dateValueLow = $this->getWhereValues('relation_active_period_date_low', $grouping);
+    $dateValueHigh = $this->getWhereValues('relation_active_period_date_high', $grouping);
+    $dateValueLowFormated = $dateValueHighFormated = NULL;
+    if (!empty($dateValueLow) && !empty($dateValueHigh)) {
+      $dateValueLowFormated = date('Ymd', strtotime($dateValueLow[2]));
+      $dateValueHighFormated = date('Ymd', strtotime($dateValueHigh[2]));
+      $this->_qill[$grouping][] = (ts('Relationship was active between')) . " " . CRM_Utils_Date::customFormat($dateValueLowFormated) . " and " . CRM_Utils_Date::customFormat($dateValueHighFormated);
+    }
+    elseif (!empty($dateValueLow)) {
+      $dateValueLowFormated = date('Ymd', strtotime($dateValueLow[2]));
+      $this->_qill[$grouping][] = (ts('Relationship was active after')) . " " . CRM_Utils_Date::customFormat($dateValueLowFormated);
+    }
+    elseif (!empty($dateValueHigh)) {
+      $dateValueHighFormated = date('Ymd', strtotime($dateValueHigh[2]));
+      $this->_qill[$grouping][] = (ts('Relationship was active before')) . " " . CRM_Utils_Date::customFormat($dateValueHighFormated);
+    }
+
+    if ($activePeriodClauses = self::getRelationshipActivePeriodClauses($dateValueLowFormated, $dateValueHighFormated, TRUE)) {
+      $where[$grouping][] = $activePeriodClauses;
+    }
+  }
+
+  /**
+   * Get start & end active period criteria
+   */
+  public static function getRelationshipActivePeriodClauses($from, $to, $forceTableName) {
+    $tableName = $forceTableName ? 'civicrm_relationship.' : '';
+    if (!is_null($from) && !is_null($to)) {
+      return '(((' . $tableName . 'start_date >= ' . $from . ' AND ' . $tableName . 'start_date <= ' . $to . ') OR
+                (' . $tableName . 'end_date >= ' . $from . ' AND ' . $tableName . 'end_date <= ' . $to . ') OR
+                (' . $tableName . 'start_date <= ' . $from . ' AND ' . $tableName . 'end_date >= ' . $to . ' )) OR
+               (' . $tableName . 'start_date IS NULL AND ' . $tableName . 'end_date IS NULL) OR
+               (' . $tableName . 'start_date IS NULL AND ' . $tableName . 'end_date >= ' . $from . ') OR
+               (' . $tableName . 'end_date IS NULL AND ' . $tableName . 'start_date <= ' . $to . '))';
+    }
+    elseif (!is_null($from)) {
+      return '((' . $tableName . 'start_date >= ' . $from . ') OR
+               (' . $tableName . 'start_date IS NULL AND ' . $tableName . 'end_date IS NULL) OR
+               (' . $tableName . 'start_date IS NULL AND ' . $tableName . 'end_date >= ' . $from . '))';
+    }
+    elseif (!is_null($to)) {
+      return '((' . $tableName . 'start_date <= ' . $to . ') OR
+               (' . $tableName . 'start_date IS NULL AND ' . $tableName . 'end_date IS NULL) OR
+               (' . $tableName . 'end_date IS NULL AND ' . $tableName . 'start_date <= ' . $to . '))';
     }
   }
 
@@ -5159,11 +5219,13 @@ SELECT COUNT( conts.total_amount ) as cancel_count,
    * @param string $dbFieldName
    * @param string $fieldTitle
    * @param bool $appendTimeStamp
+   * @param string $dateFormat
    */
   public function dateQueryBuilder(
     &$values, $tableName, $fieldName,
     $dbFieldName, $fieldTitle,
-    $appendTimeStamp = TRUE
+    $appendTimeStamp = TRUE,
+    $dateFormat = 'YmdHis'
   ) {
     list($name, $op, $value, $grouping, $wildcard) = $values;
 
@@ -5180,7 +5242,7 @@ SELECT COUNT( conts.total_amount ) as cancel_count,
       if ($name == $fieldName . '_low') {
         $firstOP = '>=';
         $firstPhrase = ts('greater than or equal to');
-        $firstDate = CRM_Utils_Date::processDate($value);
+        $firstDate = CRM_Utils_Date::processDate($value, NULL, FALSE, $dateFormat);
 
         $secondValues = $this->getWhereValues("{$fieldName}_high", $grouping);
         if (!empty($secondValues) && $secondValues[2]) {
@@ -5191,7 +5253,7 @@ SELECT COUNT( conts.total_amount ) as cancel_count,
           if ($appendTimeStamp && strlen($secondValue) == 10) {
             $secondValue .= ' 23:59:59';
           }
-          $secondDate = CRM_Utils_Date::processDate($secondValue);
+          $secondDate = CRM_Utils_Date::processDate($secondValue, NULL, FALSE, $dateFormat);
         }
       }
       elseif ($name == $fieldName . '_high') {
@@ -5201,14 +5263,14 @@ SELECT COUNT( conts.total_amount ) as cancel_count,
         if ($appendTimeStamp && strlen($value) == 10) {
           $value .= ' 23:59:59';
         }
-        $firstDate = CRM_Utils_Date::processDate($value);
+        $firstDate = CRM_Utils_Date::processDate($value, NULL, FALSE, $dateFormat);
 
         $secondValues = $this->getWhereValues("{$fieldName}_low", $grouping);
         if (!empty($secondValues) && $secondValues[2]) {
           $secondOP = '>=';
           $secondPhrase = ts('greater than or equal to');
           $secondValue = $secondValues[2];
-          $secondDate = CRM_Utils_Date::processDate($secondValue);
+          $secondDate = CRM_Utils_Date::processDate($secondValue, NULL, FALSE, $dateFormat);
         }
       }
 
@@ -5249,7 +5311,7 @@ SELECT COUNT( conts.total_amount ) as cancel_count,
       if (strstr($op, 'IN')) {
         $format = array();
         foreach ($value as &$date) {
-          $date = CRM_Utils_Date::processDate($date);
+          $date = CRM_Utils_Date::processDate($date, NULL, FALSE, $dateFormat);
           if (!$appendTimeStamp) {
             $date = substr($date, 0, 8);
           }
@@ -5259,7 +5321,7 @@ SELECT COUNT( conts.total_amount ) as cancel_count,
         $format = implode(', ', $format);
       }
       elseif ($value && (!strstr($op, 'NULL') && !strstr($op, 'EMPTY'))) {
-        $date = CRM_Utils_Date::processDate($value);
+        $date = CRM_Utils_Date::processDate($value, NULL, FALSE, $dateFormat);
         if (!$appendTimeStamp) {
           $date = substr($date, 0, 8);
         }
@@ -6370,10 +6432,12 @@ AND   displayRelType.is_active = 1
    * have been requested. Payment_instrument is the option groun name field value.
    *
    * @param array $field
+   * @param string $fieldName
+   *   The unique name of the field - ie. the one it will be aliased to in the query.
    *
    * @return bool
    */
-  private function pseudoConstantNameIsInReturnProperties($field) {
+  private function pseudoConstantNameIsInReturnProperties($field, $fieldName = NULL) {
     if (!isset($field['pseudoconstant']['optionGroupName'])) {
       return FALSE;
     }
@@ -6381,6 +6445,11 @@ AND   displayRelType.is_active = 1
     if (CRM_Utils_Array::value($field['pseudoconstant']['optionGroupName'], $this->_returnProperties)) {
       return TRUE;
     }
+    if (CRM_Utils_Array::value($fieldName, $this->_returnProperties)) {
+      return TRUE;
+    }
+    // Is this still required - the above goes off the unique name. Test with things like
+    // communication_prefferences & prefix_id.
     if (CRM_Utils_Array::value($field['name'], $this->_returnProperties)) {
       return TRUE;
     }

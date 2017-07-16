@@ -247,6 +247,14 @@ class api_v3_ContributionTest extends CiviUnitTestCase {
     $params['campaign_id'] = $this->campaignCreate();
 
     $contributionID = $this->contributionCreate($params);
+
+    // update contribution with invoice number
+    $params = array_merge($params, array(
+      'id' => $contributionID,
+      'invoice_number' => CRM_Utils_Array::value('invoice_prefix', Civi::settings()->get('contribution_invoice_settings')) . "" . $contributionID,
+    ));
+    $contributionID = $this->contributionCreate($params);
+
     $contribution = $this->callAPISuccessGetSingle('Contribution', array('id' => $contributionID));
     $this->assertEquals('bouncer', $contribution['check_number']);
     $this->assertEquals('bouncer', $contribution['contribution_check_number']);
@@ -1140,6 +1148,9 @@ class api_v3_ContributionTest extends CiviUnitTestCase {
     $contribution = $this->callAPISuccess('contribution', 'create', $newParams);
     $this->assertAPISuccess($contribution);
     $this->_checkFinancialTrxn($contribution, 'paymentInstrument', $instrumentId);
+
+    // cleanup - delete created payment instrument
+    $this->_deletedAddedPaymentInstrument();
   }
 
   /**
@@ -1165,6 +1176,9 @@ class api_v3_ContributionTest extends CiviUnitTestCase {
     $contribution = $this->callAPISuccess('contribution', 'create', $newParams);
     $this->assertAPISuccess($contribution);
     $this->_checkFinancialTrxn($contribution, 'paymentInstrument', $instrumentId, array('total_amount' => '-100.00'));
+
+    // cleanup - delete created payment instrument
+    $this->_deletedAddedPaymentInstrument();
   }
 
   /**
@@ -2473,7 +2487,7 @@ class api_v3_ContributionTest extends CiviUnitTestCase {
 
     $this->mut->checkMailLog(array(
       'is_recur:::1',
-      'cancelSubscriptionUrl:::http://dummy.com',
+      'cancelSubscriptionUrl:::' . CIVICRM_UF_BASEURL,
     ));
     $this->mut->stop();
     $this->revertTemplateToReservedTemplate();
@@ -2986,6 +3000,78 @@ class api_v3_ContributionTest extends CiviUnitTestCase {
   }
 
   /**
+   * Test sending a mail via the API.
+   * This simulates webform_civicrm using pay later contribution page
+   */
+  public function testSendconfirmationPayLater() {
+    $mut = new CiviMailUtils($this, TRUE);
+
+    // Create contribution page
+    $pageParams = array(
+      'title' => 'Webform Contributions',
+      'financial_type_id' => 1,
+      'contribution_type_id' => 1,
+      'is_confirm_enabled' => 1,
+      'is_pay_later' => 1,
+      'pay_later_text' => 'I will send payment by cheque',
+      'pay_later_receipt' => 'Send your cheque payable to "CiviCRM LLC" to the office',
+    );
+    $contributionPage = $this->callAPISuccess('contribution_page', 'create', $pageParams);
+
+    // Create pay later contribution
+    $contribParams = array(
+      'contact_id' => $this->_individualId,
+      'financial_type_id' => 1,
+      'is_pay_later' => 1,
+      'contribution_status_id' => 2,
+      'contribution_page_id' => $contributionPage['id'],
+      'total_amount' => '10.00',
+    );
+    $contribution = $this->callAPISuccess('contribution', 'create', $contribParams);
+
+    // Create line item
+    $lineItemParams = array(
+      'contribution_id' => $contribution['id'],
+      'entity_id' => $contribution['id'],
+      'entity_table' => 'civicrm_contribution',
+      'label' => 'My lineitem label',
+      'qty' => 1,
+      'unit_price' => "10.00",
+      'line_total' => "10.00",
+    );
+    $lineItem = $this->callAPISuccess('lineItem', 'create', $lineItemParams);
+
+    // Create email
+    try {
+      civicrm_api3('contribution', 'sendconfirmation', array(
+          'id' => $contribution['id'],
+          'receipt_from_email' => 'api@civicrm.org',
+        )
+      );
+    }
+    catch (Exception $e) {
+      // Need to figure out how to stop this some other day
+      // We don't care about the Payment Processor because this is Pay Later
+      // The point of this test is to check we get the pay_later version of the mail
+      if ($e->getMessage() != "Undefined variable: CRM16923AnUnreliableMethodHasBeenUserToDeterminePaymentProcessorFromContributionPage") {
+        throw $e;
+      }
+    }
+
+    // Retrieve mail & check it has the pay_later_receipt info
+    $mut->getMostRecentEmail('raw');
+    $mut->checkMailLog(array(
+        (string) $contribParams['total_amount'],
+        $pageParams['pay_later_receipt'],
+      ), array(
+        'Event',
+      )
+    );
+    $mut->stop();
+  }
+
+
+  /**
    * Check credit card details in sent mail via API
    *
    * @param $mut obj CiviMailUtils instance
@@ -3346,6 +3432,18 @@ class api_v3_ContributionTest extends CiviUnitTestCase {
     CRM_Financial_BAO_FinancialTypeAccount::add($financialParams, CRM_Core_DAO::$_nullArray);
     $this->assertNotEmpty($optionValue['values'][$optionValue['id']]['value']);
     return $optionValue['values'][$optionValue['id']]['value'];
+  }
+
+  public function _deletedAddedPaymentInstrument() {
+    $result = $this->callAPISuccess('OptionValue', 'get', array(
+      'option_group_id' => 'payment_instrument',
+      'name' => 'Test Card',
+      'value' => '6',
+      'is_active' => 1,
+    ));
+    if ($id = CRM_Utils_Array::value('id', $result)) {
+      $this->callAPISuccess('OptionValue', 'delete', array('id' => $id));
+    }
   }
 
   /**

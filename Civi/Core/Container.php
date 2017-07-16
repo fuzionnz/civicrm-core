@@ -178,6 +178,11 @@ class Container {
       array()
     ));
 
+    $container->setDefinition('asset_builder', new Definition(
+      'Civi\Core\AssetBuilder',
+      array()
+    ));
+
     $container->setDefinition('pear_mail', new Definition('Mail'))
       ->setFactoryClass('CRM_Utils_Mail')->setFactoryMethod('createMailer');
 
@@ -244,6 +249,7 @@ class Container {
     $dispatcher = new CiviEventDispatcher($container);
     $dispatcher->addListener(SystemInstallEvent::EVENT_NAME, array('\Civi\Core\InstallationCanary', 'check'));
     $dispatcher->addListener(SystemInstallEvent::EVENT_NAME, array('\Civi\Core\DatabaseInitializer', 'initialize'));
+    $dispatcher->addListener(SystemInstallEvent::EVENT_NAME, array('\Civi\Core\LocalizationInitializer', 'initialize'));
     $dispatcher->addListener('hook_civicrm_pre', array('\Civi\Core\Event\PreEvent', 'dispatchSubevent'), 100);
     $dispatcher->addListener('hook_civicrm_post', array('\Civi\Core\Event\PostEvent', 'dispatchSubevent'), 100);
     $dispatcher->addListener('hook_civicrm_post::Activity', array('\Civi\CCase\Events', 'fireCaseChange'));
@@ -254,6 +260,7 @@ class Container {
     // TODO We need a better code-convention for metadata about non-hook events.
     $dispatcher->addListener('hook_civicrm_eventDefs', array('\Civi\API\Events', 'hookEventDefs'));
     $dispatcher->addListener('hook_civicrm_eventDefs', array('\Civi\Core\Event\SystemInstallEvent', 'hookEventDefs'));
+    $dispatcher->addListener('hook_civicrm_buildAsset', array('\Civi\Angular\Page\Modules', 'buildAngularModules'));
     $dispatcher->addListener('civi.dao.postInsert', array('\CRM_Core_BAO_RecurringEntity', 'triggerInsert'));
     $dispatcher->addListener('civi.dao.postUpdate', array('\CRM_Core_BAO_RecurringEntity', 'triggerUpdate'));
     $dispatcher->addListener('civi.dao.postDelete', array('\CRM_Core_BAO_RecurringEntity', 'triggerDelete'));

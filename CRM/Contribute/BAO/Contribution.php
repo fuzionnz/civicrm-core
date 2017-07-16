@@ -2467,6 +2467,9 @@ INNER JOIN civicrm_activity ON civicrm_activity_contact.activity_id = civicrm_ac
       $ids['paymentProcessor'] = $paymentProcessorID;
       $this->_relatedObjects['paymentProcessor'] = $paymentProcessor;
     }
+
+    // Add contribution id to $ids. CRM-20401
+    $ids['contribution'] = $this->id;
     return TRUE;
   }
 
@@ -2711,8 +2714,11 @@ INNER JOIN civicrm_activity ON civicrm_activity_contact.activity_id = civicrm_ac
         $lineItems = CRM_Price_BAO_LineItem::getLineItemsByContributionID($this->id);
         if (!empty($lineItems)) {
           $firstLineItem = reset($lineItems);
-          $priceSet = civicrm_api3('PriceSet', 'getsingle', array('id' => $firstLineItem['price_set_id'], 'return' => 'is_quick_config, id'));
-          $values['priceSetID'] = $priceSet['id'];
+          $priceSet = array();
+          if (CRM_Utils_Array::value('price_set_id', $firstLineItem)) {
+            $priceSet = civicrm_api3('PriceSet', 'getsingle', array('id' => $firstLineItem['price_set_id'], 'return' => 'is_quick_config, id'));
+            $values['priceSetID'] = $priceSet['id'];
+          }
           foreach ($lineItems as &$eachItem) {
             if (isset($this->_relatedObjects['membership'])
              && is_array($this->_relatedObjects['membership'])
@@ -2723,7 +2729,7 @@ INNER JOIN civicrm_activity ON civicrm_activity_contact.activity_id = civicrm_ac
             }
             // This is actually used in conjunction with is_quick_config in the template & we should deprecate it.
             // However, that does create upgrade pain so would be better to be phased in.
-            $values['useForMember'] = !$priceSet['is_quick_config'];
+            $values['useForMember'] = empty($priceSet['is_quick_config']);
           }
           $values['lineItem'][0] = $lineItems;
         }
@@ -2845,6 +2851,8 @@ INNER JOIN civicrm_activity ON civicrm_activity_contact.activity_id = civicrm_ac
       }
     }
     $values['customGroup'] = $customGroup;
+
+    $values['is_pay_later'] = $this->is_pay_later;
 
     return $values;
   }
@@ -3659,7 +3667,10 @@ INNER JOIN civicrm_activity ON civicrm_activity_contact.activity_id = civicrm_ac
             $itemParams['amount'] = self::getMultiplier($params['contribution']->contribution_status_id, $context) * $lineItemDetails['tax_amount'];
             $itemParams['description'] = $taxTerm;
             if ($lineItemDetails['financial_type_id']) {
-              $itemParams['financial_account_id'] = self::getFinancialAccountId($lineItemDetails['financial_type_id']);
+              $itemParams['financial_account_id'] = CRM_Contribute_PseudoConstant::getRelationalFinancialAccount(
+                $lineItemDetails['financial_type_id'],
+                'Sales Tax Account is'
+              );
             }
             CRM_Financial_BAO_FinancialItem::create($itemParams, NULL, $trxnIds);
           }
@@ -3936,7 +3947,7 @@ WHERE eft.financial_trxn_id IN ({$trxnId}, {$baseTrxnId['financialTrxnId']})
       }
     }
     elseif ($paymentType == 'refund') {
-      $trxnsData['total_amount'] = -$trxnsData['total_amount'];
+      $trxnsData['total_amount'] = $trxnsData['net_amount'] = -$trxnsData['total_amount'];
       $trxnsData['from_financial_account_id'] = $arAccountId;
       $trxnsData['status_id'] = CRM_Core_PseudoConstant::getKey('CRM_Contribute_BAO_Contribution', 'contribution_status_id', 'Refunded');
       // record the entry
@@ -3954,11 +3965,16 @@ WHERE eft.financial_trxn_id IN ({$trxnId}, {$baseTrxnId['financialTrxnId']})
       $lineItems = CRM_Price_BAO_LineItem::getLineItemsByContributionID($contributionDAO->id);
       if (!empty($lineItems)) {
         foreach ($lineItems as $lineItemId => $lineItemValue) {
+          // don't record financial item for cancelled line-item
+          if ($lineItemValue['qty'] == 0) {
+            continue;
+          }
           $paid = $lineItemValue['line_total'] * ($financialTrxn->total_amount / $contributionDAO->total_amount);
           $addFinancialEntry = array(
             'transaction_date' => $financialTrxn->trxn_date,
             'contact_id' => $contributionDAO->contact_id,
             'amount' => round($paid, 2),
+            'currency' => $contributionDAO->currency,
             'status_id' => array_search('Paid', $financialItemStatus),
             'entity_id' => $lineItemId,
             'entity_table' => 'civicrm_line_item',
@@ -4162,27 +4178,6 @@ WHERE eft.financial_trxn_id IN ({$trxnId}, {$baseTrxnId['financialTrxnId']})
       $info['transaction'] = $rows;
     }
     return $info;
-  }
-
-  /**
-   * Get financial account id has 'Sales Tax Account is' account relationship with financial type.
-   *
-   * @param int $financialTypeId
-   *
-   * @return int
-   *   Financial Account Id
-   */
-  public static function getFinancialAccountId($financialTypeId) {
-    $accountRel = key(CRM_Core_PseudoConstant::accountOptionValues('account_relationship', NULL, " AND v.name LIKE 'Sales Tax Account is' "));
-    $searchParams = array(
-      'entity_table' => 'civicrm_financial_type',
-      'entity_id' => $financialTypeId,
-      'account_relationship' => $accountRel,
-    );
-    $result = array();
-    CRM_Financial_BAO_FinancialTypeAccount::retrieve($searchParams, $result);
-
-    return CRM_Utils_Array::value('financial_account_id', $result);
   }
 
   /**
@@ -4596,6 +4591,7 @@ WHERE eft.financial_trxn_id IN ({$trxnId}, {$baseTrxnId['financialTrxnId']})
               'contact_id' => $membership->contact_id,
               'is_test' => $membership->is_test,
               'membership_type_id' => $membership->membership_type_id,
+              'membership_activity_status' => 'Completed',
             );
 
             $currentMembership = CRM_Member_BAO_Membership::getContactMembership($membershipParams['contact_id'],

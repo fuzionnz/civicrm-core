@@ -1787,7 +1787,7 @@ ORDER BY   civicrm_email.is_bulkmail DESC
       // Populate the recipients.
       if (empty($params['_skip_evil_bao_auto_recipients_'])) {
         // check if it's sms
-        $mode = $mailing->sms_provider_id ? 'sms' : NULL;
+        $mode = $mailing->sms_provider_id && $mailing->sms_provider_id != 'null' ? 'sms' : NULL;
         self::getRecipients($job->id, $mailing->id, TRUE, $mailing->dedupe_email, $mode);
       }
       // Schedule the job now that it has recipients.
@@ -1958,8 +1958,9 @@ ORDER BY   civicrm_email.is_bulkmail DESC
       'header' => ts('Header'),
       'footer' => ts('Footer'),
       'reply' => ts('Reply'),
-      'unsubscribe' => ts('Unsubscribe'),
       'optout' => ts('Opt-Out'),
+      'resubscribe' => ts('Resubscribe'),
+      'unsubscribe' => ts('Unsubscribe'),
     );
     foreach (array_keys($components) as $type) {
       $query[] = "SELECT          {$t['component']}.name as name,
