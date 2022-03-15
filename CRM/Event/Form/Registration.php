@@ -559,7 +559,7 @@ class CRM_Event_Form_Registration extends CRM_Core_Form {
           $field['is_required'] = FALSE;
         }
         // CRM-11316 Is ReCAPTCHA enabled for this profile AND is this an anonymous visitor
-        elseif ($field['add_captcha'] && !$contactID) {
+        elseif ($field['add_captcha'] && !$contactID && !CRM_Utils_String::startsWith($name, 'additionalCustom')) {
           // only add captcha for first page
           $addCaptcha = TRUE;
         }
@@ -711,7 +711,7 @@ class CRM_Event_Form_Registration extends CRM_Core_Form {
 
     // create CMS user
     if (!empty($this->_params['cms_create_account'])) {
-      $this->_params['contactID'] = $contactID;
+      $_POST['contactID'] = $this->_params['contactID'] = $contactID;
 
       if (array_key_exists('email-5', $this->_params)) {
         $mail = 'email-5';
@@ -729,9 +729,9 @@ class CRM_Event_Form_Registration extends CRM_Core_Form {
       // 1. pay later participant.
       // 2. waiting list participant.
       // 3. require approval participant.
-      if (!empty($this->_params['is_pay_later']) ||
+      if (!empty($this->_params['email-Primary']) && (!empty($this->_params['is_pay_later']) ||
         $this->_allowWaitlist || $this->_requireApproval
-      ) {
+      )) {
         $mail = 'email-Primary';
       }
 

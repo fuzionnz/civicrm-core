@@ -481,7 +481,7 @@ AND       CEF.entity_id    = %2";
         'placeholder' => ts('Description'),
       ]);
 
-      if (!empty($tags)) {
+      if (!empty($tags) && CRM_Core_Permission::check('manage tags')) {
         $form->add('select', "tag_$i", ts('Tags'), $tags, FALSE,
           [
             'id' => "tags_$i",

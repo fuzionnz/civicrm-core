@@ -794,6 +794,7 @@ class CRM_Export_BAO_ExportProcessor {
     //sort by state
     //CRM-15301
     $query->_sort = $order;
+    // $query->_useDistinct = TRUE;
     [$select, $from, $where, $having] = $query->query();
     $this->setQueryFields($query->_fields);
     $whereClauses = ['trash_clause' => "contact_a.is_deleted != 1"];

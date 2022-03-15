@@ -167,6 +167,12 @@ AND    {$this->_componentClause}";
             1 => [$contribution->trxn_id, 'String'],
           ]);
 
+      if (!empty($ids['membership'])) {
+        $membershipPayments = (array) CRM_Member_BAO_Membership::getMembershipContributionId($ids['membership'][0], TRUE);
+        if (in_array($contribID, $membershipPayments) && $contribID != current($membershipPayments)) {
+          $template->assign('renewal_mode', TRUE);
+        }
+      }
       if (isset($params['from_email_address']) && !$elements['createPdf']) {
         // If a logged in user from email is used rather than a domain wide from email address
         // the from_email_address params key will be numerical and we need to convert it to be

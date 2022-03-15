@@ -160,6 +160,7 @@ class CRM_Contribute_Form_Contribution_Confirm extends CRM_Contribute_Form_Contr
       'tax_amount' => $params['tax_amount'] ?? NULL,
       'amount_level' => $params['amount_level'] ?? NULL,
       'invoice_id' => $params['invoiceID'],
+      'invoice_number' => $params['invoice_number'] ?? NULL,
       'currency' => $params['currencyID'],
       'is_pay_later' => $params['is_pay_later'] ?? 0,
       //configure cancel reason, cancel date and thankyou date

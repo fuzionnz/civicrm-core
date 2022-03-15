@@ -1202,7 +1202,7 @@ class CRM_Contact_Import_Parser_Contact extends CRM_Contact_Import_Parser {
       if (strlen($gender) > strlen($value)) {
         continue;
       }
-      if ($gender == $value) {
+      if ($gender == $key || $gender == $value) {
         return $value;
       }
       if (substr_compare($value, $gender, 0, strlen($gender), TRUE) === 0) {

@@ -112,6 +112,8 @@ class CRM_Contribute_Form_UpdateSubscription extends CRM_Contribute_Form_Contrib
     }
 
     $this->assign('editableScheduleFields', array_diff($this->editableScheduleFields, $alreadyHardCodedFields));
+    $this->assign('frequency_unit', $this->_subscriptionDetails->frequency_unit);
+    $this->assign('frequency_interval', $this->_subscriptionDetails->frequency_interval);
 
     if ($this->_subscriptionDetails->contact_id) {
       [$this->_donorDisplayName, $this->_donorEmail] = CRM_Contact_BAO_Contact::getContactDetails($this->_subscriptionDetails->contact_id);

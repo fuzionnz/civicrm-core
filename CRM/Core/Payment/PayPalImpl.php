@@ -940,19 +940,7 @@ class CRM_Core_Payment_PayPalImpl extends CRM_Core_Payment {
     $notifyURL = $this->getNotifyUrl();
 
     $config = CRM_Core_Config::singleton();
-    $url = ($component == 'event') ? 'civicrm/event/register' : 'civicrm/contribute/transact';
-    $cancel = ($component == 'event') ? '_qf_Register_display' : '_qf_Main_display';
-
-    $cancelUrlString = "$cancel=1&cancel=1&qfKey={$params['qfKey']}";
-    if (!empty($params['is_recur'])) {
-      $cancelUrlString .= "&isRecur=1&recurId={$params['contributionRecurID']}&contribId={$params['contributionID']}";
-    }
-
-    $cancelURL = CRM_Utils_System::url(
-      $url,
-      $cancelUrlString,
-      TRUE, NULL, FALSE
-    );
+    $participantID = $notifyParameters['participantID'] ?? NULL;
 
     $paypalParams = [
       'business' => $this->_paymentProcessor['user_name'],
@@ -960,7 +948,7 @@ class CRM_Core_Payment_PayPalImpl extends CRM_Core_Payment {
       'item_name' => $this->getPaymentDescription($params, 127),
       'quantity' => 1,
       'undefined_quantity' => 0,
-      'cancel_return' => $cancelURL,
+      'cancel_return' => $this->getCancelUrl($params['qfKey'], $participantID),
       'no_note' => 1,
       'no_shipping' => 1,
       'return' => $this->getReturnSuccessUrl($params['qfKey']),

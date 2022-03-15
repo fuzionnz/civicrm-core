@@ -185,10 +185,11 @@ class CRM_Core_BAO_UFMatch extends CRM_Core_DAO_UFMatch {
         // That this contacID value is passed through as the contact_id to the get duplicate contacts function. This is necessary because for Drupal 8 this function gets invoked
         // Before the civicrm_uf_match record is added where as in D7 it isn't called until the user tries to actually login.
         if (!empty($params['contactID'])) {
-          $params['contact_id'] = $params['contactID'];
+          $ids = [$params['contactID']];
         }
-
-        $ids = CRM_Contact_BAO_Contact::getDuplicateContacts($params, 'Individual', 'Unsupervised', [], FALSE);
+        else {
+          $ids = CRM_Contact_BAO_Contact::getDuplicateContacts($params, 'Individual', 'Unsupervised', [], FALSE);
+        }
 
         if (!empty($ids) && Civi::settings()->get('uniq_email_per_site')) {
           // restrict dupeIds to ones that belong to current domain/site.

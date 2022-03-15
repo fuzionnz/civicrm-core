@@ -48,10 +48,15 @@
                         {if $index < 10}
                             {assign var="index" value=`$index+1`}
                         {else}
-                          <td class="labels font-light">{$form.$element_name.$key.html}</td>
-                              {if $count == $element.options_per_line}
-                                {assign var="count" value="1"}
-                           </tr>
+                          <td class="labels font-light">
+                            {$form.$element_name.$key.html}
+                            {if $smarty.foreach.outer.last && $optionEditHTML}
+                              {$optionEditHTML}
+                            {/if}
+                          </td>
+                            {if $count == $element.options_per_line}
+                              {assign var="count" value="1"}
+                          </tr>
                             {else}
                                 {assign var="count" value=`$count+1`}
                             {/if}

@@ -277,11 +277,6 @@ class CRM_Member_Form_MembershipRenewal extends CRM_Member_Form {
         //CRM-16950
         $taxAmount = NULL;
         $totalAmount = $values['minimum_fee'] ?? 0;
-        // @todo - feels a bug - we use taxRate from the form default rather than from the specified type?!?
-        if ($this->getTaxRateForFinancialType($values['financial_type_id'])) {
-          $taxAmount = ($taxRate / 100) * CRM_Utils_Array::value('minimum_fee', $values);
-          $totalAmount = $totalAmount + $taxAmount;
-        }
 
         // build membership info array, which is used to set the payment information block when
         // membership type is selected.
@@ -627,7 +622,8 @@ class CRM_Member_Form_MembershipRenewal extends CRM_Member_Form {
         'membership_id' => $membership->id,
         'contribution_recur_id' => $contributionRecurID,
       ]);
-      CRM_Member_BAO_Membership::recordMembershipContribution($temporaryParams);
+      $contribution = CRM_Member_BAO_Membership::recordMembershipContribution($temporaryParams);
+      $this->_params['contribution_id'] = $contribution->id;
     }
 
     if (!empty($this->_params['send_receipt'])) {
@@ -673,6 +669,9 @@ class CRM_Member_Form_MembershipRenewal extends CRM_Member_Form {
     $this->assign_by_ref('formValues', $this->_params);
     if (!empty($this->_params['contribution_id'])) {
       $this->assign('contributionID', $this->_params['contribution_id']);
+    }
+    if (!empty($this->_params['tax_amount'])) {
+      $this->assign('totalTaxAmount', $this->_params['tax_amount']);
     }
 
     $this->assign('membership_name', CRM_Core_DAO::getFieldValue('CRM_Member_DAO_MembershipType',

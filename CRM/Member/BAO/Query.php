@@ -193,6 +193,7 @@ class CRM_Member_BAO_Query extends CRM_Core_BAO_Query {
       case 'member_start_date_low':
       case 'member_start_date_high':
         CRM_Core_Error::deprecatedWarning('member_start_date field is deprecated please use membership_start_date field instead');
+        case 'membership_start_date':
         $fldName = str_replace(['_low', '_high'], '', $name);
         $query->dateQueryBuilder($values,
           'civicrm_membership', $fldName, 'start_date',
@@ -253,6 +254,9 @@ class CRM_Member_BAO_Query extends CRM_Core_BAO_Query {
       case 'member_campaign_id':
 
         if (strpos($name, 'status') !== FALSE) {
+          if (!empty($value) && !is_numeric($value) && is_string($value)) {
+            $value = CRM_Core_DAO::getFieldValue('CRM_Member_DAO_MembershipStatus', $value, 'id', 'label');
+          }
           $name = 'status_id';
           $qillName = ts('Membership Status');
         }

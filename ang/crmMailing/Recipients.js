@@ -36,7 +36,7 @@
         // @param string id an encoded string like "4 civicrm_mailing include"
         // @return Object keys: entity_id, entity_type, mode
         function convertValueToObj(id) {
-          var a = id.split(" ");
+          var a = id.toString().split(" ");
           return {entity_id: parseInt(a[0]), entity_type: a[1], mode: a[2]};
         }
 

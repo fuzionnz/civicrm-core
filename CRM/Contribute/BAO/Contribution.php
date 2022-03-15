@@ -2016,6 +2016,8 @@ LEFT JOIN  civicrm_contribution contribution ON ( componentPayment.contribution_
           );
 
           $formattedParams = [
+            'contact_id' => $membership->contact_id,
+            'membership_type_id' => $membership->membership_type_id,
             'status_id' => CRM_Utils_Array::value('id', $calcStatus,
               array_search('Current', $membershipStatuses)
             ),
@@ -2028,6 +2030,7 @@ LEFT JOIN  civicrm_contribution contribution ON ( componentPayment.contribution_
 
           $membership->copyValues($formattedParams);
           $membership->save();
+          unset($formattedParams['contact_id']);
 
           //updating the membership log
           $membershipLog = $formattedParams;
@@ -2823,6 +2826,9 @@ INNER JOIN civicrm_activity ON civicrm_activity_contact.activity_id = civicrm_ac
     $values['customGroup'] = $customGroup;
 
     $values['is_pay_later'] = $this->is_pay_later;
+    if (!empty($values['contribution_status']) && $values['contribution_status'] == 'Completed') {
+      $values['is_pay_later'] = FALSE;
+    }
 
     return $values;
   }

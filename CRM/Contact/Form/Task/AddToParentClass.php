@@ -39,7 +39,7 @@ class CRM_Contact_Form_Task_AddToParentClass extends CRM_Contact_Form_Task {
       [
         '' => ts('- select -'),
       ] +
-      CRM_Contact_BAO_Relationship::getRelationType($contactType), TRUE
+      CRM_Contact_BAO_Relationship::getRelationType($contactType, TRUE), TRUE
     );
 
     $searchRows = $this->get('searchRows');

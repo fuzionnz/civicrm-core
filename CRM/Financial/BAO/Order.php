@@ -1030,14 +1030,15 @@ class CRM_Financial_BAO_Order {
    * @return void
    */
   protected function addTotalsToLineBasedOnOverrideTotal(int $financialTypeID, array &$lineItem): void {
+    $amountOverride = $this->getOverrideTotalAmount();
     $taxRate = $this->getTaxRate($financialTypeID);
     if ($taxRate) {
       // Total is tax inclusive.
-      $lineItem['tax_amount'] = ($taxRate / 100) * $this->getOverrideTotalAmount() / (1 + ($taxRate / 100));
-      $lineItem['line_total'] = $lineItem['unit_price'] = $this->getOverrideTotalAmount() - $lineItem['tax_amount'];
+      $lineItem['tax_amount'] = $amountOverride - ($amountOverride * 100)/($taxRate + 100);
+      $lineItem['line_total'] = $lineItem['unit_price'] = $amountOverride - $lineItem['tax_amount'];
     }
     else {
-      $lineItem['line_total'] = $lineItem['unit_price'] = $this->getOverrideTotalAmount();
+       $lineItem['line_total'] = $lineItem['unit_price'] = $amountOverride;
     }
   }
 

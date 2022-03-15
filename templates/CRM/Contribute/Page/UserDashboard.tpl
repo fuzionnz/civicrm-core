@@ -133,9 +133,16 @@
                                 for {$recurRows.$id.installments} installments
                             </td>
                             <td>{$recurRows.$id.recur_status}</td>
-                            <td>{if $recurRows.$id.completed}<a href="{$recurRows.$id.link}">{$recurRows.$id.completed}
-                                    /{$recurRows.$id.installments}</a>
-                                {else}0/{$recurRows.$id.installments} {/if}</td>
+                            <td>
+                              {if $recurRows.$id.completed}
+                                {if $recurRows.$id.link}
+                                  <a href="{$recurRows.$id.link}">{$recurRows.$id.completed}/{$recurRows.$id.installments}</a>
+                                {else}
+                                  {$recurRows.$id.completed}/{$recurRows.$id.installments}
+                                {/if}
+                              {else}
+                                0/{$recurRows.$id.installments}
+                              {/if}</td>
                             <td>{$recurRows.$id.create_date|crmDate}</td>
                             <td>{$recurRows.$id.action|replace:'xx':$recurRows.id}</td>
                         </tr>

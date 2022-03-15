@@ -1452,6 +1452,7 @@ function _civicrm_api3_custom_data_get(&$returnArray, $checkPermission, $entity,
 
       // Shim to restore legacy behavior of ContactReference custom fields
       if (!empty($fieldInfo[$id]) && $fieldInfo[$id]['data_type'] === 'ContactReference') {
+        $val = is_array($val) ? reset($val) : $val;
         $returnArray['custom_' . $id . '_id'] = $returnArray[$key . '_id'] = $val;
         $returnArray['custom_' . $id] = $returnArray[$key] = CRM_Core_DAO::getFieldValue('CRM_Contact_DAO_Contact', $val, 'sort_name');
       }

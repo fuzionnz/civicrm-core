@@ -579,7 +579,8 @@ class CRM_Case_Form_Activity extends CRM_Activity_Form_Activity {
     //CRM-5695
     //check for notification settings for assignee contacts
     $selectedContacts = ['contact_check'];
-    if (Civi::settings()->get('activity_assignee_notification')) {
+    if (Civi::settings()->get('activity_assignee_notification')
+      && !in_array($activity->activity_type_id, Civi::settings()->get('do_not_notify_assignees_for'))) {
       $selectedContacts[] = 'assignee_contact_id';
     }
 
