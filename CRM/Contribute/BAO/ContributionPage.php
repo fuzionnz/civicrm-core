@@ -328,6 +328,21 @@ class CRM_Contribute_BAO_ContributionPage extends CRM_Contribute_DAO_Contributio
       }
 
       $title = $values['title'] ?? CRM_Contribute_BAO_Contribution_Utils::getContributionPageTitle($values['contribution_page_id']);
+      $taxRate = [];
+      $getTaxDetails = FALSE;
+      foreach ($values['lineItem'] as $key => $value) {
+        foreach ($value as $v) {
+          if (isset($taxRate[(string) CRM_Utils_Array::value('tax_rate', $v)])) {
+            $taxRate[(string) $v['tax_rate']] = $taxRate[(string) $v['tax_rate']] + CRM_Utils_Array::value('tax_amount', $v);
+          }
+          else {
+            if (isset($v['tax_rate'])) {
+              $taxRate[(string) $v['tax_rate']] = $v['tax_amount'] ?? NULL;
+              $getTaxDetails = TRUE;
+            }
+          }
+        }
+      }
 
       // Set email variables explicitly to avoid leaky smarty variables.
       // All of these will be assigned to the template, replacing any that might be assigned elsewhere.
@@ -339,6 +354,8 @@ class CRM_Contribute_BAO_ContributionPage extends CRM_Contribute_DAO_Contributio
         'contributionID' => $values['contribution_id'] ?? NULL,
         'contributionOtherID' => $values['contribution_other_id'] ?? NULL,
         // CRM-5095
+        'dataArray' => $taxRate,
+        'getTaxDetails' => $getTaxDetails,
         'lineItem' => $values['lineItem'] ?? NULL,
         // CRM-5095
         'priceSetID' => $values['priceSetID'] ?? NULL,
@@ -408,7 +425,7 @@ class CRM_Contribute_BAO_ContributionPage extends CRM_Contribute_DAO_Contributio
         'tplParams' => $tplParams,
         'tokenContext' => $tplParams['contributionID'] ? ['contributionId' => (int) $tplParams['contributionID'], 'contactId' => $contactID] : ['contactId' => $contactID],
         'isTest' => $isTest,
-        'PDFFilename' => 'receipt.pdf',
+        'PDFFilename' => !empty($values['is_pay_later']) ? 'invoice.pdf' : 'receipt.pdf',
       ];
 
       if ($returnMessageText) {

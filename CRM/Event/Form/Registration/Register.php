@@ -448,7 +448,12 @@ class CRM_Event_Form_Registration_Register extends CRM_Event_Form_Registration {
 
     $this->assign('bypassPayment', $bypassPayment);
 
-    if (!$contactID) {
+    $loggedInCid = (int) CRM_Core_Session::getLoggedInContactID();
+    $contactUserID = NULL;
+    if ($contactID) {
+      $contactUserID = CRM_Core_BAO_UFMatch::getUFId($contactID);
+    }
+    if (!$loggedInCid && !$contactUserID) {
       $createCMSUser = FALSE;
 
       if ($this->_values['custom_pre_id']) {

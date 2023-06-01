@@ -105,6 +105,10 @@ class CRM_Contribute_Page_Tab extends CRM_Core_Page {
       ];
     }
 
+    if (!CRM_Core_Permission::check('access CiviContribute')) {
+      unset($links[CRM_Core_Action::VIEW], $links[CRM_Core_Action::UPDATE]);
+    }
+
     return $links;
   }
 

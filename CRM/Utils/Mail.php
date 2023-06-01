@@ -306,6 +306,10 @@ class CRM_Utils_Mail {
         unset($headers['Bcc']);
       }
     }
+    elseif (!empty($headers['Return-Path'])) {
+      // use Return-Path for SMTP envelope<E2><80><99>s FROM address (if set), CRM-5946
+      $mailer->_params = "-f".$headers['Return-Path'];
+    }
 
     if (is_object($mailer)) {
       try {

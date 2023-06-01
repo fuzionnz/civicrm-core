@@ -168,7 +168,8 @@ class CRM_Event_Form_Search extends CRM_Core_Form_Search {
           foreach ((array) $this->_formValues['participant_role_id'] as $participantRole) {
             $escapedRoles[] = CRM_Utils_Type::escape($participantRole, 'String');
           }
-          $seatClause[] = "( participant.role_id IN ( '" . implode("' , '", $escapedRoles) . "' ) )";
+          $escapedRolesRegex = implode('|', $escapedRoles);
+          $seatClause[] = "( participant.role_id REGEXP '{$escapedRolesRegex}' )";
         }
 
         // CRM-15379

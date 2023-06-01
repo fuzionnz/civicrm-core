@@ -83,7 +83,7 @@
                   </tr>
               {/if}
               <tr class="columnheader"><td>{ts}Field{/ts}</td><td>{ts}Length{/ts}</td><td>{ts}Weight{/ts}</td></tr>
-                {section name=count loop=5}
+                {section name=count loop=$rules_count}
                   {capture assign=where}where_{$smarty.section.count.index}{/capture}
                   {capture assign=length}length_{$smarty.section.count.index}{/capture}
                   {capture assign=weight}weight_{$smarty.section.count.index}{/capture}

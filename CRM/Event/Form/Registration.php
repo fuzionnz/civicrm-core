@@ -778,7 +778,7 @@ class CRM_Event_Form_Registration extends CRM_Core_Form {
 
     // create CMS user
     if (!empty($this->_params['cms_create_account'])) {
-      $this->_params['contactID'] = $contactID;
+      $_POST['contactID'] = $this->_params['contactID'] = $contactID;
 
       if (array_key_exists('email-5', $this->_params)) {
         $mail = 'email-5';
@@ -796,9 +796,9 @@ class CRM_Event_Form_Registration extends CRM_Core_Form {
       // 1. pay later participant.
       // 2. waiting list participant.
       // 3. require approval participant.
-      if (!empty($this->_params['is_pay_later']) ||
+      if (!empty($this->_params['email-Primary']) && (!empty($this->_params['is_pay_later']) ||
         $this->_allowWaitlist || $this->_requireApproval
-      ) {
+      )) {
         $mail = 'email-Primary';
       }
 

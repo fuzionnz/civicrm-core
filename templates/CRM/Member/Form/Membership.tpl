@@ -265,7 +265,7 @@
 
     {literal}
     <script type="text/javascript">
-      function setPaymentBlock(mode, checkboxEvent) {
+      function setPaymentBlock(mode, checkboxEvent, totalAmountChanged = false) {
         if (cj('#price_set_id').length > 0 && cj('#price_set_id').val()) {
           return;
         }
@@ -290,6 +290,9 @@
             }
           }
           {/literal}{/if}{literal}
+        }
+        if (totalAmountChanged) {
+          allMemberships[memType]['total_amount_numeric'] = cj("#total_amount").val();
         }
 
         // skip this for test and live modes because financial type is set automatically
@@ -326,6 +329,9 @@
       });
       cj('#num_terms').change( function( ) {
         setPaymentBlock(mode);
+      });
+      cj('#total_amount').change( function( ) {
+        setPaymentBlock(mode, true, true);
       });
 
       // show/hide different contact section

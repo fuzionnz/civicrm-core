@@ -1627,6 +1627,11 @@ WHERE     ct.id = cp.financial_type_id AND
         if (!empty($field['options'][$optionValueId]['tax_rate'])) {
           $lineItem = self::setLineItem($field, $lineItem, $optionValueId, $totalTax);
           if ($amount_override) {
+            //If amount is overridden, calculate tax amount based on the updated amount value.
+            $taxRates = CRM_Core_PseudoConstant::getTaxRates();
+            if (!empty($lineItem[$optionValueId]['financial_type_id']) && array_key_exists($lineItem[$optionValueId]['financial_type_id'], $taxRates)) {
+              $lineItem[$optionValueId]['tax_amount'] = $totalTax = $amount_override - ($amount_override * 100)/($taxRates[$lineItem[$optionValueId]['financial_type_id']] + 100);
+            }
             $lineItem[$optionValueId]['line_total'] = $lineItem[$optionValueId]['unit_price'] = CRM_Utils_Rule::cleanMoney($lineItem[$optionValueId]['line_total'] - $lineItem[$optionValueId]['tax_amount']);
           }
         }

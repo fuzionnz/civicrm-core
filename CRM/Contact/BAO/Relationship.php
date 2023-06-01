@@ -1312,12 +1312,12 @@ LEFT JOIN  civicrm_country ON (civicrm_address.country_id = civicrm_country.id)
    * @return array
    *   array reference of all relationship types with context to current contact type.
    */
-  public static function getRelationType($targetContactType) {
+  public static function getRelationType($targetContactType, $includeAllContactType = FALSE) {
     $relationshipType = [];
     $allRelationshipType = CRM_Core_PseudoConstant::relationshipType();
 
     foreach ($allRelationshipType as $key => $type) {
-      if ($type['contact_type_b'] == $targetContactType || empty($type['contact_type_b'])) {
+      if ($type['contact_type_b'] == $targetContactType || (!empty($includeAllContactType) && empty($type['contact_type_b']))) {
         $relationshipType[$key . '_a_b'] = $type['label_a_b'];
       }
       if (($type['contact_type_a'] == $targetContactType || empty($type['contact_type_a']))
@@ -1713,6 +1713,7 @@ AND cc.sort_name LIKE '%$name%'";
       WHERE r1.relationship_type_id = r2.relationship_type_id
       AND r1.id <> r2.id
       AND r1.case_id IS NULL AND r2.case_id IS NULL
+      AND r1.is_active = r2.is_active
       AND (
         r1.contact_id_a = $mainId AND r2.contact_id_a = $otherId AND r1.contact_id_b = r2.contact_id_b
         OR r1.contact_id_b = $mainId AND r2.contact_id_b = $otherId AND r1.contact_id_a = r2.contact_id_a

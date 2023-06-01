@@ -486,7 +486,7 @@ AND       CEF.entity_id    = %2";
       ]);
 
       $tagField = "tag_$i";
-      if (!empty($tags)) {
+      if (!empty($tags) && CRM_Core_Permission::check('manage tags')) {
         $form->add('select', $tagField, ts('Tags'), $tags, FALSE,
           [
             'id' => "tags_$i",

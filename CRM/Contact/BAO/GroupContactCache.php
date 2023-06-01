@@ -626,7 +626,7 @@ ORDER BY   gc.contact_id, g.children
     );
     $select = preg_replace("/^\s*SELECT /", "SELECT $addSelect, ", $sqlParts['select']);
 
-    return "$select {$sqlParts['from']} {$sqlParts['where']} {$sqlParts['group_by']} {$sqlParts['having']}";
+    return str_replace(['&lt;', '&gt;'], ['<', '>'], "$select {$sqlParts['from']} {$sqlParts['where']} {$sqlParts['group_by']} {$sqlParts['having']}");
   }
 
   /**

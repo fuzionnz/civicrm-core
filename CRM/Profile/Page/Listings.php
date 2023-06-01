@@ -294,6 +294,9 @@ class CRM_Profile_Page_Listings extends CRM_Core_Page {
         $this->assign('ufGroupName', $ufgroupDAO->name);
       }
     }
+    if (empty($this->_gid) && empty($this->_profileIds)) {
+      return;
+    }
 
     $this->assign('isReset', TRUE);
 

@@ -187,6 +187,12 @@ AND    {$this->_componentClause}";
         $input['receipt_from_email'] = substr(trim($fromDetails[1]), 0, -1);
         $input['receipt_from_name'] = str_replace('"', '', $fromDetails[0]);
       }
+      if (!empty($ids['membership'])) {
+        $membershipPayments = (array) CRM_Member_BAO_Membership::getMembershipContributionId($ids['membership'][0], TRUE);
+        if (in_array($contribID, $membershipPayments) && $contribID != current($membershipPayments)) {
+          $template->assign('renewal_mode', TRUE);
+        }
+      }
 
       $mail = CRM_Contribute_BAO_Contribution::sendMail($input, $ids, $contribID, $isCreatePDF);
 

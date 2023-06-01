@@ -57,6 +57,9 @@ class CRM_Core_Page_File extends CRM_Core_Page {
 
     if (empty($mimeType)) {
       $passedInMimeType = self::convertBadMimeAliasTypes(CRM_Utils_Request::retrieveValue('mime-type', 'String', $mimeType, FALSE));
+      if (empty($passedInMimeType)) {
+        list($ignore, $passedInMimeType) = CRM_Core_BAO_File::path($fileId, $entityId);
+      }
       if (!in_array($passedInMimeType, explode(',', Civi::settings()->get('requestableMimeTypes')))) {
         throw new CRM_Core_Exception("Supplied mime-type is not accepted");
       }

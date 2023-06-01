@@ -137,9 +137,6 @@ class CRM_Core_Payment_AuthorizeNetIPN extends CRM_Core_Payment_BaseIPN {
     else {
       // Declined
       // failed status
-      $recur->contribution_status_id = array_search('Failed', $contributionStatus);
-      $recur->cancel_date = $now;
-      $recur->save();
 
       $message = ts('Subscription payment failed - %1', [1 => htmlspecialchars($input['response_reason_text'])]);
       CRM_Core_Error::debug_log_message($message);

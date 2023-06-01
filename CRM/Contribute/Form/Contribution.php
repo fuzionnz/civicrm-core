@@ -1619,9 +1619,13 @@ class CRM_Contribute_Form_Contribution extends CRM_Contribute_Form_AbstractEditP
         $this->_priceSetId = CRM_Core_DAO::getFieldValue('CRM_Price_DAO_PriceField', $lineItems[$itemId]['price_field_id'], 'price_set_id');
       }
 
+      $isQuickConfig = 0;
+      if ($this->_priceSetId && CRM_Core_DAO::getFieldValue('CRM_Price_DAO_PriceSet', $this->_priceSetId, 'is_quick_config')) {
+        $isQuickConfig = 1;
+      }
       // @todo see above - new functionality has been inappropriately added to the quick config concept
       // and new functionality has been added onto the form layer rather than the BAO :-(
-      if ($this->_priceSetId && CRM_Core_DAO::getFieldValue('CRM_Price_DAO_PriceSet', $this->_priceSetId, 'is_quick_config')) {
+      if ((empty($this->_priceSetId) || $isQuickConfig) && count($lineItems) == 1) {
         //CRM-16833: Ensure tax is applied only once for membership conribution, when status changed.(e.g Pending to Completed).
         $componentDetails = CRM_Contribute_BAO_Contribution::getComponentDetails($this->_id);
         if (empty($componentDetails['membership']) && empty($componentDetails['participant'])) {
@@ -1651,17 +1655,13 @@ class CRM_Contribute_Form_Contribution extends CRM_Contribute_Form_AbstractEditP
       }
     }
 
-    $isQuickConfig = 0;
-    if ($this->_priceSetId && CRM_Core_DAO::getFieldValue('CRM_Price_DAO_PriceSet', $this->_priceSetId, 'is_quick_config')) {
-      $isQuickConfig = 1;
-    }
     //CRM-11529 for quick config back office transactions
     //when financial_type_id is passed in form, update the
     //line items with the financial type selected in form
     // NOTE that this IS still a legitimate use of 'quick-config' for contributions under the current DB but
     // we should look at having a price field per contribution type & then there would be little reason
     // for the back-office contribution form postProcess to know if it is a quick-config form.
-    if ($isQuickConfig && !empty($submittedValues['financial_type_id']) && !empty($lineItem[$this->_priceSetId])
+    if ($isQuickConfig && !empty($submittedValues['financial_type_id']) && !empty($lineItem[$this->_priceSetId]) && count($lineItems) == 1
     ) {
       foreach ($lineItem[$this->_priceSetId] as &$values) {
         $values['financial_type_id'] = $submittedValues['financial_type_id'];
@@ -1890,11 +1890,11 @@ class CRM_Contribute_Form_Contribution extends CRM_Contribute_Form_AbstractEditP
       $this->assign('dataArray', $taxRate);
     }
     else {
+      $this->assign('getTaxDetails', $getTaxDetails);
+      $this->assign('dataArray', $taxRate);
+      $this->assign('taxTerm', Civi::settings()->get('tax_term'));
       if (!empty($submittedValues['price_set_id'])) {
         $this->assign('totalTaxAmount', $submittedValues['tax_amount']);
-        $this->assign('getTaxDetails', $getTaxDetails);
-        $this->assign('dataArray', $taxRate);
-        $this->assign('taxTerm', Civi::settings()->get('tax_term'));
       }
       else {
         $this->assign('totalTaxAmount', CRM_Utils_Array::value('tax_amount', $submittedValues));

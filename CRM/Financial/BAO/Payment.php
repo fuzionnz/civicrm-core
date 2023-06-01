@@ -248,14 +248,14 @@ class CRM_Financial_BAO_Payment {
 
     foreach (['trxn_id', 'check_number'] as $fieldName) {
       if (!empty($params[$fieldName])) {
+        $financialTrxnDAO = CRM_Core_DAO::executeQuery("SELECT cft.{$fieldName}
+          FROM civicrm_financial_trxn cft
+          LEFT JOIN civicrm_entity_financial_trxn ceft
+          ON ceft.financial_trxn_id = cft.id AND ceft.entity_table = 'civicrm_contribution'
+          WHERE entity_id = %1 AND {$fieldName} IS NOT NULL",  [1 => [$contributionID, 'Integer']]);
         $values = [];
-        if (!empty($contributionDAO->$fieldName)) {
-          $values = explode(',', $contributionDAO->$fieldName);
-        }
-        // if submitted check_number or trxn_id value is
-        //   already present then ignore else add to $values array
-        if (!in_array($params[$fieldName], $values)) {
-          $values[] = $params[$fieldName];
+        while ($financialTrxnDAO->fetch()) {
+          $values[] = $financialTrxnDAO->$fieldName;
         }
         $contributionDAO->$fieldName = implode(',', $values);
       }

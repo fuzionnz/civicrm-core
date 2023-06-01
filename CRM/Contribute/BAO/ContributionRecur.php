@@ -731,7 +731,7 @@ INNER JOIN civicrm_contribution       con ON ( con.id = mp.contribution_id )
     $soft_contribution->contribution_id = CRM_Core_DAO::getFieldValue('CRM_Contribute_DAO_Contribution', $recurId, 'id', 'contribution_recur_id');
 
     // Check if first recurring contribution has any associated soft credit.
-    if ($soft_contribution->find(TRUE)) {
+    if ($soft_contribution->find(TRUE) && $soft_contribution->contribution_id != $targetContributionId) {
       $soft_contribution->contribution_id = $targetContributionId;
       unset($soft_contribution->id);
       $soft_contribution->save();

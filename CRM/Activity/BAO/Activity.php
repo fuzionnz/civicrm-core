@@ -1211,6 +1211,7 @@ WHERE entity_id =%1 AND entity_table = %2";
     // Create the meta level record first ( sms activity )
     $activityParams = [
       'source_contact_id' => $sourceContactId,
+      'target_contact_id' => $contactIds,
       'activity_type_id' => CRM_Core_PseudoConstant::getKey('CRM_Activity_BAO_Activity', 'activity_type_id', 'SMS'),
       'activity_date_time' => date('YmdHis'),
       'subject' => $activityParams['activity_subject'],
@@ -1317,6 +1318,7 @@ WHERE entity_id =%1 AND entity_table = %2";
     }
 
     $recipient = $toPhoneNumber;
+    $smsProviderParams['To'] = $recipient = $toPhoneNumber;
     $smsProviderParams['contact_id'] = $toID;
     $smsProviderParams['parent_activity_id'] = $activityID;
 
@@ -2649,7 +2651,12 @@ INNER JOIN  civicrm_option_group grp ON (grp.id = option_group_id AND grp.name =
     $customValues = CRM_Core_BAO_CustomValueTable::getEntityValues($params['activityID'], 'Activity');
 
     if (!empty($customValues)) {
-      $fieldIds = implode(', ', array_keys($customValues));
+      $cfIds = [];
+      foreach ($customValues as $key => $v) {
+        $cfIds[] = explode('_', $key)[0];
+      }
+      $fieldIds = implode(', ', array_unique($cfIds));
+
       $sql = "SELECT id FROM civicrm_custom_field WHERE html_type = 'File' AND id IN ( {$fieldIds} )";
       $result = CRM_Core_DAO::executeQuery($sql);
 

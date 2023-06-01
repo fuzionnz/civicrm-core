@@ -1042,7 +1042,7 @@ SELECT civicrm_case.id, case_status.label AS case_status, status_id, civicrm_cas
     }
 
     $groupBy = "
-         GROUP BY ca.id, tcc.id, scc.id, acc.id, ov.value";
+        GROUP BY ca.id, ov.value";
 
     $sortBy = $params['sortBy'] ?? NULL;
     if (!$sortBy) {
@@ -2264,43 +2264,36 @@ SELECT  id
       //copy case relationship.
       if ($duplicateContacts) {
         //migrate relationship records.
-        $otherRelationship = new CRM_Contact_DAO_Relationship();
-        $otherRelationship->case_id = $otherCaseId;
-        $otherRelationship->find();
+        $otherRelationshipValues = civicrm_api3('Relationship', 'get', [
+          'sequential' => 1,
+          'case_id' => $otherCaseId,
+        ]);
+        $otherRelationshipValues = CRM_Utils_Array::value('values', $otherRelationshipValues, array());
         $otherRelationshipIds = [];
-        while ($otherRelationship->fetch()) {
-          $otherRelVals = [];
+        foreach ($otherRelationshipValues as $val) {
           $updateOtherRel = FALSE;
-          CRM_Core_DAO::storeValues($otherRelationship, $otherRelVals);
+          $otherRelVals = $val;
+          $otherRelVals['id'] = NULL;
+          $otherRelVals['case_id'] = $mainCaseId;
 
-          $mainRelationship = new CRM_Contact_DAO_Relationship();
-          $mainRelationship->copyValues($otherRelVals);
-          $mainRelationship->id = NULL;
-          $mainRelationship->case_id = $mainCaseId;
-          if ($mainRelationship->contact_id_a == $otherContactId) {
+          if ($otherRelVals['contact_id_a'] == $otherContactId) {
             $updateOtherRel = TRUE;
-            $mainRelationship->contact_id_a = $mainContactId;
+            $otherRelVals['contact_id_a'] = $mainContactId;
           }
 
           //case creator change only when we merge user contact.
-          if ($mainRelationship->contact_id_b == $otherContactId) {
+          if ($otherRelVals['contact_id_b'] == $otherContactId) {
             //do not change creator for change client.
             if (!$changeClient) {
               $updateOtherRel = TRUE;
-              $mainRelationship->contact_id_b = ($currentUserId) ? $currentUserId : $mainContactId;
+              $otherRelVals['contact_id_b'] = ($currentUserId) ? $currentUserId : $mainContactId;
             }
           }
-          $mainRelationship->end_date = CRM_Utils_Date::isoToMysql($otherRelationship->end_date);
-          $mainRelationship->start_date = CRM_Utils_Date::isoToMysql($otherRelationship->start_date);
-
-          //avoid duplicate object.
-          if (!$mainRelationship->find(TRUE)) {
-            $mainRelationship->save();
-          }
+          civicrm_api3('Relationship', 'create', $otherRelVals);
 
           //get the other relationship ids to update end date.
           if ($updateOtherRel) {
-            $otherRelationshipIds[$otherRelationship->id] = $otherRelationship->id;
+            $otherRelationshipIds[$val['id']] = $val['id'];
           }
         }
 

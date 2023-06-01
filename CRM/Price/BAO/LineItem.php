@@ -655,7 +655,6 @@ WHERE li.contribution_id = %1";
         $requiredChanges['line_items_to_update']
       );
     }
-
     // update line item with changed line total and other information
     $totalParticipant = $participantCount = 0;
     $amountLevel = [];
@@ -688,8 +687,22 @@ WHERE li.contribution_id = %1";
     else {
       $updatedAmount = CRM_Utils_Array::value('amount', $params, CRM_Utils_Array::value('total_amount', $params));
     }
+    $otherParticipantTaxAmount = 0;
+    if ($entity == 'participant') {
+      $sqlLineItemTotalTax = "SELECT SUM(tax_amount)
+        FROM civicrm_line_item
+        WHERE contribution_id = %1 AND entity_table = 'civicrm_participant' AND entity_id != %2";
+      $lineParams = [
+        1 => [$contributionId, 'Integer'],
+        2 => [$entityID, 'Integer'],
+      ];
+      $otherParticipantTaxAmount = CRM_Core_DAO::singleValueQuery($sqlLineItemTotalTax, $lineParams);
+    }
     if (strlen($params['tax_amount']) != 0) {
-      $taxAmount = $params['tax_amount'];
+      $taxAmount = $params['tax_amount'] + $otherParticipantTaxAmount;
+    }
+    elseif (!empty($otherParticipantTaxAmount)) {
+      $taxAmount = $otherParticipantTaxAmount;
     }
     else {
       $taxAmount = "NULL";

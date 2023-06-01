@@ -182,8 +182,9 @@ class CRM_Dedupe_Finder {
       'individual_prefix' => 'prefix_id',
       'individual_suffix' => 'suffix_id',
       'gender' => 'gender_id',
+      'contact_id' => 'id',
     ];
-    foreach (['individual_suffix', 'individual_prefix', 'gender'] as $name) {
+    foreach (array_keys($replace_these) as $name) {
       if (!empty($fields[$name])) {
         $flat[$replace_these[$name]] = $flat[$name];
         unset($flat[$name]);

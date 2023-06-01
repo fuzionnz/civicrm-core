@@ -151,7 +151,7 @@ class CRM_Pledge_BAO_PledgeBlock extends CRM_Pledge_DAO_PledgeBlock {
             'scheduled_amount' => CRM_Utils_Rule::cleanMoney($value['scheduled_amount']),
             'scheduled_amount_currency' => $value['currency'],
             'scheduled_date' => CRM_Utils_Date::customFormat($value['scheduled_date'],
-              '%B %d'
+              '%B %d %Y'
             ),
           );
         }
@@ -164,7 +164,7 @@ class CRM_Pledge_BAO_PledgeBlock extends CRM_Pledge_DAO_PledgeBlock {
             'scheduled_amount' => CRM_Utils_Rule::cleanMoney($value['scheduled_amount']),
             'scheduled_amount_currency' => $value['currency'],
             'scheduled_date' => CRM_Utils_Date::customFormat($value['scheduled_date'],
-              '%B %d'
+              '%B %d %Y'
             ),
           );
           $isNextPayment = TRUE;

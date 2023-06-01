@@ -1136,7 +1136,7 @@ if (!CRM.vars) CRM.vars = {};
       $('.crm-form-autocomplete:not(.select2-offscreen, .select2-container)[data-api-entity]', e.target).each(function() {
         $(this).crmAutocomplete($(this).data('apiEntity'), $(this).data('apiParams'), $(this).data('selectParams'));
       });
-      $('select.crm-chain-select-control', e.target).off('.chainSelect').on('change.chainSelect', chainSelect);
+      $('select.crm-chain-select-control', e.target).off('.chainSelect').on('change.chainSelect', chainSelect).change();
       $('.crm-form-text[data-crm-datepicker]', e.target).each(function() {
         $(this).crmDatepicker($(this).data('crmDatepicker'));
       });

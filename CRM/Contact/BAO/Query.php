@@ -3300,7 +3300,8 @@ WHERE  $smartGroupClause
     }
 
     $tagTree = CRM_Core_BAO_Tag::getChildTags();
-    foreach ((array) $value as $tagID) {
+    $value = (array) $value;
+    foreach ($value as $tagID) {
       if (!empty($tagTree[$tagID])) {
         // make sure value is an array here (see CORE-2502)
         $value = array_unique(array_merge((array) $value, $tagTree[$tagID]));
@@ -3701,9 +3702,11 @@ WHERE  $smartGroupClause
     [$name, $op, $value, $grouping, $wildcard] = $values;
 
     $name = trim($value);
-    $cond = " contact_a.sort_name LIKE '" . CRM_Core_DAO::escapeWildCardString($name) . "%'";
-    $this->_where[$grouping][] = $cond;
-    $this->_qill[$grouping][] = ts('Showing only Contacts starting with: \'%1\'', [1 => $name]);
+    if ($name != 'all') {
+      $cond = " contact_a.sort_name LIKE '" . CRM_Core_DAO::escapeWildCardString($name) . "%'";
+      $this->_where[$grouping][] = $cond;
+      $this->_qill[$grouping][] = ts('Showing only Contacts starting with: \'%1\'', [1 => $name]);
+    }
   }
 
   /**

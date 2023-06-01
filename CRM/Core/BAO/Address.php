@@ -397,6 +397,10 @@ class CRM_Core_BAO_Address extends CRM_Core_DAO_Address implements Civi\Core\Hoo
       $values = [];
       CRM_Core_DAO::storeValues($address, $values);
 
+      //Fill name of contact if empty.
+      if (empty($address->name) && !empty($address->contact_id)) {
+        $address->name = CRM_Contact_BAO_Contact::displayName($address->contact_id);
+      }
       // add state and country information: CRM-369
       if (!empty($address->location_type_id)) {
         $values['location_type'] = $locationTypes[$address->location_type_id] ?? NULL;

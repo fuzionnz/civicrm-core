@@ -999,6 +999,8 @@ SELECT  id
       }
       unset($fields[$value['field_type']][$key]);
     }
+    $fields['Contact']['contact_id'] = $fields['Contact']['id'];
+    unset($fields['Contact']['id']);
 
     // Allow extensions to alter the array of entity => fields permissible in a CiviCRM Profile.
     CRM_Utils_Hook::alterUFFields($fields);

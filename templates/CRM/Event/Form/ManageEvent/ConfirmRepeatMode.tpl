@@ -9,7 +9,7 @@
 *}
 {if !empty($hasParent) || !empty($isRepeatingEntity) || !empty($scheduleReminderId)}
   {capture assign='entity_type'}{$recurringEntityType|lower}{/capture}
-  <script type="text/template" id="recurring-dialog-tpl">
+  <template id="recurring-dialog-tpl">
     <div class="recurring-dialog">
       <h4>{ts}How should this change affect others in the series?{/ts}</h4>
       <div>
@@ -27,7 +27,7 @@
       </div>
       <div class="status help"><i class="crm-i fa-info-circle" aria-hidden="true"></i> {ts}Changes to date or time will <em>not</em> be applied to others in the series.{/ts}</div>
     </div>
-  </script>
+  </template>
 {literal}
   <script type="text/javascript">
     CRM.$(function($) {

@@ -133,6 +133,11 @@ class CRM_Core_BAO_UFGroup extends CRM_Core_DAO_UFGroup implements \Civi\Core\Ho
     $fields = [];
 
     foreach ($ufGroups as $id => $title) {
+      $isReserved = CRM_Core_DAO::getFieldValue('CRM_Core_DAO_UFGroup', $id, 'is_reserved');
+      $usedBy = CRM_Core_BAO_UFGroup::usedByModule($id, 'Profile');
+      if (empty($isReserved) && empty($usedBy)) {
+        continue;
+      }
       if ($ctype) {
         $fieldType = CRM_Core_BAO_UFField::getProfileType($id);
         if (($fieldType != 'Contact') &&
@@ -1372,12 +1377,15 @@ class CRM_Core_BAO_UFGroup extends CRM_Core_DAO_UFGroup implements \Civi\Core\Ho
    * @return bool
    *
    */
-  public static function usedByModule($id) {
+  public static function usedByModule($id, $moduleName = NULL) {
     //check whether this group is used by any module(check uf join records)
     $sql = "SELECT id
                  FROM civicrm_uf_join
                  WHERE civicrm_uf_join.uf_group_id=$id";
 
+    if ($moduleName) {
+      $sql .= " AND module = '{$moduleName}'";
+    }
     $dao = new CRM_Core_DAO();
     $dao->query($sql);
     if ($dao->fetch()) {
@@ -1943,9 +1951,14 @@ AND    ( entity_id IS NULL OR entity_id <= 0 )
       );
     }
     elseif (in_array($fieldName, ['gender_id', 'communication_style_id'])) {
-      $options = [];
-      $pseudoValues = CRM_Core_PseudoConstant::get('CRM_Contact_DAO_Contact', $fieldName);
-      $form->addRadio($name, ts('%1', [1 => $title]), $pseudoValues, ['allowClear' => !$required], NULL, $required);
+      $props = [
+        'label' => $title,
+        'entity' => 'Contact',
+        'context' => 'create',
+        'type' => 'Radio',
+        'action' => 'create',
+      ];
+      $form->addField($name, $props, $required);
     }
     elseif ($fieldName === 'prefix_id' || $fieldName === 'suffix_id') {
       $form->addSelect($name, [
@@ -2011,14 +2024,7 @@ AND    ( entity_id IS NULL OR entity_id <= 0 )
       );
     }
     elseif ($fieldName === 'preferred_communication_method') {
-      $communicationFields = CRM_Core_PseudoConstant::get('CRM_Contact_DAO_Contact', 'preferred_communication_method');
-      foreach ($communicationFields as $key => $var) {
-        if ($key == '') {
-          continue;
-        }
-        $communicationOptions[] = $form->createElement('checkbox', $key, NULL, $var);
-      }
-      $form->addGroup($communicationOptions, $name, $title, '<br/>');
+      $form->add('select', $name, $title, CRM_Contact_BAO_Contact::buildOptions('preferred_communication_method'), $required, ['class' => 'crm-select2', 'multiple' => TRUE]);
     }
     elseif ($fieldName === 'preferred_mail_format') {
       $form->add('select', $name, $title, CRM_Core_SelectValues::pmf());

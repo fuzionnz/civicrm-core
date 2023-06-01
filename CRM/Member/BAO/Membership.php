@@ -1500,6 +1500,8 @@ WHERE  civicrm_membership.contact_id = civicrm_contact.id
             $queue[] = $params;
           }
         }
+        //unset id for the next iteration.
+        unset($params['id']);
       }
       // now go over the queue and create any available related memberships
       foreach ($queue as $params) {
@@ -1805,7 +1807,12 @@ INNER JOIN  civicrm_contact contact ON ( contact.id = membership.contact_id AND 
     $currentMembership = CRM_Member_BAO_Membership::getContactMembership($contactID, $membershipTypeID,
       $is_test, $membershipID, TRUE
     );
-    if ($currentMembership) {
+    //Do not up-sell if existing membership is inherited.
+    $inheritedMemTypeChange = FALSE;
+    if (!empty($currentMembership['owner_membership_id'] && $membershipTypeID != $currentMembership['membership_type_id'])) {
+      $inheritedMemTypeChange = TRUE;
+    }
+    if ($currentMembership && !$inheritedMemTypeChange) {
       $renewalMode = TRUE;
 
       // Do NOT do anything.
@@ -2663,6 +2670,16 @@ WHERE {$whereClause}";
           }
 
           $newSql[] = sprintf("UPDATE civicrm_membership SET %s WHERE id=%s", implode(", ", $updates_sql), $newMembershipId);
+          // Log this change in membership_log table.
+          $memLog = [
+            'membership_id' => $newMembershipId,
+            'status_id' => $updates['status_id'] ?? NULL,
+            'start_date' => $updates['start_date'] ?? NULL,
+            'end_date' => $updates['end_date'] ?? NULL,
+            'modified_id' => CRM_Core_Session::getLoggedInContactID() ?? NULL,
+            'modified_date' => date('Y-m-d'),
+          ];
+          $newSql[] = sprintf("INSERT INTO civicrm_membership_log (%s) VALUES (%s)", implode(", ", array_keys($memLog)), implode(", ", $memLog));
           $newSql[] = sprintf("DELETE FROM civicrm_membership WHERE id=%s", $otherMembershipId);
         }
 

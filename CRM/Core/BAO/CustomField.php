@@ -1327,7 +1327,15 @@ class CRM_Core_BAO_CustomField extends CRM_Core_DAO_CustomField {
               $fileId = $value;
             }
             else {
-              $fileId = CRM_Core_DAO::getFieldValue('CRM_Core_DAO_File', $value, 'id', 'uri');
+              $fileParams = [
+                1 => [$entityId, 'Integer'],
+                2 => [$value, 'String'],
+              ];
+              $fileId = CRM_Core_DAO::singleValueQuery(
+                "SELECT cf.id
+                from civicrm_file cf
+                LEFT JOIN civicrm_entity_file cef ON cf.id = cef.file_id
+                WHERE cef.entity_id = %1 AND cf.uri = %2", $fileParams);
             }
             $url = self::getFileURL($entityId, $field['id'], $fileId);
             if ($url) {
@@ -1667,6 +1675,11 @@ SELECT id
       }
 
       $value = $value ? CRM_Utils_Array::implodePadded($value) : '';
+    }
+    if ($customFields[$customFieldId]['html_type'] == 'Radio' && $customFields[$customFieldId]['data_type'] == 'String') {
+      if (empty($value) && $value !== 0) {
+        $value = 'null';
+      }
     }
 
     if (self::isSerialized($customFields[$customFieldId]) &&

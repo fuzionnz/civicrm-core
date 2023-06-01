@@ -125,6 +125,7 @@ class CRM_Contact_Form_DedupeRules extends CRM_Admin_Form {
     $this->addField('threshold', ['label' => ts("Weight Threshold to Consider Contacts 'Matching':")] + $attributes);
 
     $this->assign('contact_type', $this->_contactType);
+    $this->assign('rules_count', self::RULES_COUNT);
 
     $this->addFormRule(['CRM_Contact_Form_DedupeRules', 'formRule'], $this);
 

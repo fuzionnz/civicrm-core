@@ -85,7 +85,13 @@ class CRM_Utils_ReCAPTCHA {
     );
     $form->registerRule('recaptcha', 'callback', 'validate', 'CRM_Utils_ReCAPTCHA');
     $form->addRule('g-recaptcha-response', E::ts('Please go back and complete the CAPTCHA at the bottom of this form.'), 'recaptcha');
-    if ($form->isSubmitted() && empty($form->_submitValues['g-recaptcha-response'])) {
+
+    $isReload = FALSE;
+    $action = $form->controller->getActionName();
+    if (is_array($action) && end($action) == 'reload' && !in_array('upload', $action)) {
+      $isReload = TRUE;
+    }
+    if (!$isReload && $form->isSubmitted() && empty($form->_submitValues['g-recaptcha-response'])) {
       $form->setElementError(
         'g-recaptcha-response',
         E::ts('Please go back and complete the CAPTCHA at the bottom of this form.')

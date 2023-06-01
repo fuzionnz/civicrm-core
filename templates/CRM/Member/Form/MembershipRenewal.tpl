@@ -217,14 +217,16 @@
           cj('#recordContribution').hide();
         }
       });
-
+      cj('#total_amount').change( function( ) {
+        setPaymentBlock(true, true);
+      });
       cj('#membership_type_id_1').change(function () {
         setPaymentBlock();
       });
       setPaymentBlock();
     });
 
-    function setPaymentBlock(checkboxEvent) {
+    function setPaymentBlock(checkboxEvent, totalAmountChanged = false) {
       var memType = cj('#membership_type_id_1').val();
 
       if (!memType) {
@@ -232,7 +234,16 @@
       }
 
       var allMemberships = {/literal}{$allMembershipInfo}{literal};
+      if (totalAmountChanged) {
+        allMemberships[memType]['total_amount_numeric'] = cj("#total_amount").val();
+      }
       var mode = {/literal}'{$membershipMode}'{literal};
+      var taxRates = {/literal}{$taxRates}{literal};
+      var taxTerm = {/literal}{$taxTerm|@json_encode}{literal};
+      var taxRate = taxRates[allMemberships[memType]['financial_type_id']];
+      var currency = {/literal}{$currency|@json_encode}{literal};
+      var taxAmount = (taxRate/100)*allMemberships[memType]['total_amount_numeric'];
+      taxAmount = isNaN (taxAmount) ? 0:taxAmount;
 
       if (!mode) {
         // skip this for test and live modes because contribution type is set automatically
@@ -252,14 +263,26 @@
 
       var term = cj("#num_terms").val();
       if (term) {
-        var renewTotal = allMemberships[memType]['total_amount_numeric'] * term;
+        if (!taxRate) {
+          var renewTotal = allMemberships[memType]['total_amount_numeric'] * term;
+        }
+        else {
+          var renewTotal = Number((taxRate/100) * (allMemberships[memType]['total_amount_numeric'] * term))+Number
+           (allMemberships[memType]['total_amount_numeric'] * term );
+        }
         cj("#total_amount").val(CRM.formatMoney(renewTotal, true));
       }
       else {
-        cj("#total_amount").val(allMemberships[memType]['total_amount']);
+        if (taxRate) {
+          var feeTotal = parseFloat(Number((taxRate/100) * allMemberships[memType]['total_amount'])+Number(allMemberships[memType]['total_amount_numeric'])).toFixed(2);
+          cj("#total_amount").val(CRM.formatMoney(feeTotal, true));
+        }
+        else {
+          cj("#total_amount").val(allMemberships[memType]['total_amount']);
+        }
       }
-
-      cj('.totaltaxAmount').html(allMemberships[memType]['tax_message']);
+      var taxMessage = taxRate != undefined ? 'Includes ' + taxTerm + ' amount of ' + taxAmount : '';
+      cj('.totaltaxAmount').html(taxMessage);
     }
 
     // show/hide different contact section

@@ -52,6 +52,7 @@ class CRM_Mailing_Form_Optout extends CRM_Core_Form {
     if (!$job_id || !$queue_id || !$hash) {
       throw new CRM_Core_Exception(ts("Missing input parameters"));
     }
+    $this->assign('confirm', CRM_Utils_Request::retrieve('confirm', 'Boolean', $this));
 
     // verify that the three numbers above match
     $q = CRM_Mailing_Event_BAO_MailingEventQueue::verify($job_id, $queue_id, $hash);

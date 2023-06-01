@@ -1302,11 +1302,15 @@ function _civicrm_api3_contact_getmergedto($params) {
     ],
   ])['values'];
   if (!empty($deleteActivity)) {
-    $contactID = civicrm_api3('ActivityContact', 'getvalue', [
-      'activity_id' => $deleteActivity[0]['activity_id.parent_id'],
-      'record_type_id' => 'Activity Targets',
-      'return' => 'contact_id',
-    ]);
+    try {
+      $contactID = civicrm_api3('ActivityContact', 'getvalue', [
+        'activity_id' => $deleteActivity[0]['activity_id.parent_id'],
+        'record_type_id' => 'Activity Targets',
+        'return' => 'contact_id',
+      ]);
+    }
+    catch (CiviCRM_API3_Exception $e) {
+    }
   }
   return $contactID;
 }

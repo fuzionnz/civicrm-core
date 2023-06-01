@@ -41,9 +41,10 @@
     <tr><td class="label">{$form.financial_type_id.label}</td><td>{$form.financial_type_id.html}</td></tr>
     {/if}
   </table>
-
-  {if !$self_service}
-    {include file="CRM/common/customDataBlock.tpl"}
+  {if call_user_func(array('CRM_Core_Permission','check'), 'access CiviCRM')}
+    {if !$self_service}
+      {include file="CRM/common/customDataBlock.tpl"}
+    {/if}
   {/if}
 
   <div class="crm-submit-buttons">{include file="CRM/common/formButtons.tpl" location="bottom"}</div>

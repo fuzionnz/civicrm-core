@@ -290,7 +290,9 @@ class CRM_PCP_Form_PCPAccount extends CRM_Core_Form {
       }
     }
 
-    $this->_contactID = CRM_Contact_BAO_Contact::getFirstDuplicateContact($params, 'Individual', 'Unsupervised', [], FALSE);
+    if (!$this->_id || !$this->_contactID) {
+      $this->_contactID = CRM_Contact_BAO_Contact::getFirstDuplicateContact($params, 'Individual', 'Unsupervised', [], FALSE);
+    }
 
     if (!empty($params['image_URL'])) {
       CRM_Contact_BAO_Contact::processImageParams($params);

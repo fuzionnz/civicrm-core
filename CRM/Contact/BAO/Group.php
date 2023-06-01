@@ -1140,7 +1140,7 @@ WHERE  id IN $groupIdString
       $hierarchy[$group['id']] = $spaces . $group['title'];
     }
     else {
-      $hierarchy[] = [
+      $hierarchy[$group['id']] = [
         'id' => $group['id'],
         'text' => $spaces . $group['title'],
         'description' => $group['description'],
@@ -1393,7 +1393,7 @@ WHERE {$whereClause}";
       }
     }
 
-    return $childGroupIDs;
+    return array_unique($childGroupIDs);
   }
 
   /**

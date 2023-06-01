@@ -187,9 +187,11 @@ class CRM_Core_BAO_UFMatch extends CRM_Core_DAO_UFMatch {
         // where as in D7 it isn't called until the user tries to actually login.
         if (!empty($dedupeParameters['contactID'])) {
           $dedupeParameters['contact_id'] = $dedupeParameters['contactID'];
+          $ids = [$dedupeParameters['contact_id']];
         }
-
-        $ids = CRM_Contact_BAO_Contact::getDuplicateContacts($dedupeParameters, 'Individual', 'Unsupervised', [], FALSE);
+        else {
+            $ids = CRM_Contact_BAO_Contact::getDuplicateContacts($dedupeParameters, 'Individual', 'Unsupervised', [], FALSE);
+        }
 
         if (!empty($ids) && Civi::settings()->get('uniq_email_per_site')) {
           // Restrict dupeIds to ones that belong to current domain/site.
