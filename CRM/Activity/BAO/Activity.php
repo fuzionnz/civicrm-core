@@ -1201,6 +1201,7 @@ WHERE entity_id =%1 AND entity_table = %2";
     // Create the meta level record first ( sms activity )
     $activityParams = [
       'source_contact_id' => $sourceContactId,
+      'target_contact_id' => $contactIds,
       'activity_type_id' => CRM_Core_PseudoConstant::getKey('CRM_Activity_BAO_Activity', 'activity_type_id', 'SMS'),
       'activity_date_time' => date('YmdHis'),
       'subject' => $activityParams['activity_subject'],
