@@ -1309,6 +1309,7 @@ WHERE entity_id =%1 AND entity_table = %2";
     }
 
     $recipient = $toPhoneNumber;
+    $smsProviderParams['To'] = $recipient;
     $smsProviderParams['contact_id'] = $toID;
     $smsProviderParams['parent_activity_id'] = $activityID;
     $smsProviderParams['entity_id'] = $entityID;
