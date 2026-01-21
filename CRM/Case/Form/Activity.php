@@ -179,16 +179,7 @@ class CRM_Case_Form_Activity extends CRM_Activity_Form_Activity {
 
         // If not bounce back and also provide activity edit link if only one existing activity
         if (isset($activityInst[$this->_activityTypeName])) {
-          $activityCount = CRM_Case_BAO_Case::getCaseActivityCount($caseId, $this->_activityTypeId);
-          $editUrl = self::checkMaxInstances(
-            $caseId,
-            $this->_activityTypeId,
-            $activityInst[$this->_activityTypeName],
-            $this->_currentUserId,
-            $this->_currentlyViewedContactId,
-            $activityCount
-          );
-          $bounceMessage = self::getMaxInstancesBounceMessage($editUrl, $this->_activityTypeName, $activityInst[$this->_activityTypeName], $activityCount);
+          $bounceMessage = self::getMaxInstancesBounceMessage(NULL, $this->_activityTypeName, $activityInst[$this->_activityTypeName], $activityCount);
           if ($bounceMessage) {
             CRM_Core_Error::statusBounce($bounceMessage, $url);
           }
