@@ -2588,7 +2588,12 @@ INNER JOIN  civicrm_option_group grp ON (grp.id = option_group_id AND grp.name =
     $customValues = CRM_Core_BAO_CustomValueTable::getEntityValues($params['activityID'], 'Activity');
 
     if (!empty($customValues)) {
-      $fieldIds = implode(', ', array_keys($customValues));
+      $cfIds = [];
+      foreach ($customValues as $key => $v) {
+        $cfIds[] = explode('_', $key)[0];
+      }
+      $fieldIds = implode(', ', array_unique($cfIds));
+
       $sql = "SELECT id FROM civicrm_custom_field WHERE html_type = 'File' AND id IN ( {$fieldIds} )";
       $result = CRM_Core_DAO::executeQuery($sql);
 
